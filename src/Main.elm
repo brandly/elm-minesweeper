@@ -54,16 +54,63 @@ fromDimensions width height =
     List.map (\x -> makeColumn x) (List.range 1 width)
 
 
+withBombs : Int -> Grid -> Grid
+withBombs count grid =
+    let
+        total =
+            totalBombs grid
 
---withBombs : Int -> Grid -> Grid
---withBombs count grid = grid
---findEmptyCell : Grid -> Cell
---findEmptyCell grid = ...
+        cell =
+            findEmptyCell grid
+    in
+    if total < count then
+        withBombs
+            count
+            (updateCell
+                (\cell -> { cell | bomb = True })
+                cell
+                grid
+            )
+    else
+        grid
+
+
+findEmptyCell : Grid -> Cell
+findEmptyCell grid =
+    let
+        empties =
+            List.filter
+                (\cell -> not cell.bomb)
+                (gridToCells grid)
+
+        first =
+            case List.head empties of
+                Just empty ->
+                    empty
+
+                Nothing ->
+                    Debug.crash ""
+    in
+    first
+
+
+totalBombs : Grid -> Int
+totalBombs grid =
+    List.length
+        (List.filter
+            (\cell -> cell.bomb)
+            (gridToCells grid)
+        )
+
+
+gridToCells : Grid -> List Cell
+gridToCells grid =
+    List.concat grid
 
 
 initialModel : Model
 initialModel =
-    { grid = fromDimensions 16 16 }
+    { grid = withBombs 40 (fromDimensions 16 16) }
 
 
 type Msg
@@ -74,32 +121,34 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         MouseUpCell cell ->
-            ( { model | grid = updateCell cell model.grid }, Cmd.none )
+            ( { model | grid = updateCellState cell model.grid }, Cmd.none )
 
 
-updateCell cell grid =
-    case cell.state of
-        Pristine ->
-            setCellState
-                Empty
-                cell
-                grid
-
-        _ ->
-            grid
-
-
-setCellState : CellState -> Cell -> Grid -> Grid
-setCellState state cell grid =
+updateCellState : Cell -> Grid -> Grid
+updateCellState cell grid =
     let
-        newCell =
-            { cell | state = state }
+        state =
+            case cell.state of
+                Pristine ->
+                    Empty
 
+                _ ->
+                    cell.state
+    in
+    updateCell
+        (\cell -> { cell | state = state })
+        cell
+        grid
+
+
+updateCell : (Cell -> Cell) -> Cell -> Grid -> Grid
+updateCell newCell cell grid =
+    let
         replaceCell col =
             List.map
                 (\og ->
-                    if og.x == cell.x && og.y == cell.y then
-                        newCell
+                    if og == cell then
+                        newCell cell
                     else
                         og
                 )
