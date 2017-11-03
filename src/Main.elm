@@ -50,9 +50,11 @@ fromDimensions width height =
     let
         makeColumn : Int -> Column
         makeColumn x =
-            List.map (\y -> Cell x y Pristine False) (List.range 1 height)
+            List.range 1 height
+                |> List.map (\y -> Cell x y Pristine False)
     in
-    List.map (\x -> makeColumn x) (List.range 1 width)
+    List.range 1 width
+        |> List.map makeColumn
 
 
 withBombs : Int -> Grid -> Grid
@@ -152,6 +154,7 @@ updateCellState cell grid =
 updateCell : (Cell -> Cell) -> Cell -> Grid -> Grid
 updateCell newCell cell grid =
     let
+        replaceCell : Column -> Column
         replaceCell col =
             List.map
                 (\og ->
@@ -163,9 +166,7 @@ updateCell newCell cell grid =
                 )
                 col
     in
-    List.map
-        replaceCell
-        grid
+    grid |> List.map replaceCell
 
 
 subscriptions : Model -> Sub Msg
@@ -175,18 +176,18 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div
-        [ style
-            [ ( "box-sizing", "border-box" )
-            , ( "min-height", "100vh" )
-            , ( "width", "100%" )
-            , ( "overflow", "hidden" )
-            , ( "background-image", "url('https://www.hdwallpapers.in/walls/windows_xp_bliss-wide.jpg')" )
-            ]
-        ]
-        [ h1 [] [ text "~ minesweeper ~" ]
-        , div
-            [ style
+    let
+        background =
+            styled div
+                [ ( "box-sizing", "border-box" )
+                , ( "min-height", "100vh" )
+                , ( "width", "100%" )
+                , ( "overflow", "hidden" )
+                , ( "background-image", "url('https://www.hdwallpapers.in/walls/windows_xp_bliss-wide.jpg')" )
+                ]
+
+        frame =
+            styled div
                 [ ( "display", "inline-block" )
                 , ( "background-color", "#bdbdbd" )
                 , ( "padding", "5px" )
@@ -194,7 +195,12 @@ view model =
                 , ( "border-top-color", "#fff" )
                 , ( "border-left-color", "#fff" )
                 ]
-            ]
+    in
+    background
+        []
+        [ h1 [] [ text "~ minesweeper ~" ]
+        , frame
+            []
             [ insetDiv
                 [ style
                     [ ( "height", "36px" )
@@ -264,10 +270,7 @@ viewGrid activeCell grid =
             , ( "height", px gridHeight )
             ]
         ]
-        (List.map
-            viewColumn
-            grid
-        )
+        (grid |> List.map viewColumn)
 
 
 viewCell : Int -> Bool -> Cell -> Html Msg
