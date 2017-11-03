@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Html exposing (Html, div, h1, p, pre, text)
 import Html.Attributes exposing (style)
-import Html.Events exposing (onMouseUp)
+import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
 
 
 main : Program Never Model Msg
@@ -41,6 +41,7 @@ type alias Grid =
 
 type alias Model =
     { grid : Grid
+    , activeCell : Maybe Cell
     }
 
 
@@ -79,9 +80,8 @@ findEmptyCell : Grid -> Cell
 findEmptyCell grid =
     let
         empties =
-            List.filter
-                (\cell -> not cell.bomb)
-                (gridToCells grid)
+            gridToCells grid
+                |> List.filter (\cell -> not cell.bomb)
 
         first =
             case List.head empties of
@@ -96,11 +96,7 @@ findEmptyCell grid =
 
 totalBombs : Grid -> Int
 totalBombs grid =
-    List.length
-        (List.filter
-            (\cell -> cell.bomb)
-            (gridToCells grid)
-        )
+    List.length <| List.filter .bomb (gridToCells grid)
 
 
 gridToCells : Grid -> List Cell
@@ -110,18 +106,30 @@ gridToCells grid =
 
 initialModel : Model
 initialModel =
-    { grid = withBombs 40 (fromDimensions 16 16) }
+    { grid = withBombs 40 (fromDimensions 16 16)
+    , activeCell = Nothing
+    }
 
 
 type Msg
     = MouseUpCell Cell
+    | PressDown Cell
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ grid } as model) =
     case msg of
         MouseUpCell cell ->
-            ( { model | grid = updateCellState cell model.grid }, Cmd.none )
+            ( { model
+                | grid =
+                    updateCellState cell model.grid
+                , activeCell = Nothing
+              }
+            , Cmd.none
+            )
+
+        PressDown cell ->
+            ( { model | activeCell = Just cell }, Cmd.none )
 
 
 updateCellState : Cell -> Grid -> Grid
@@ -129,7 +137,7 @@ updateCellState cell grid =
     let
         state =
             case cell.state of
-                Pristine ->
+                Pressed ->
                     Empty
 
                 _ ->
@@ -147,15 +155,16 @@ updateCell newCell cell grid =
         replaceCell col =
             List.map
                 (\og ->
-                    if og == cell then
-                        newCell cell
+                    if og.x == cell.x && og.y == cell.y then
+                        newCell
+                            cell
                     else
                         og
                 )
                 col
     in
     List.map
-        (\col -> replaceCell col)
+        replaceCell
         grid
 
 
@@ -171,7 +180,7 @@ view model =
             [ ( "box-sizing", "border-box" )
             , ( "min-height", "100vh" )
             , ( "width", "100%" )
-            , ( "overflow", "auto" )
+            , ( "overflow", "hidden" )
             , ( "background-image", "url('https://www.hdwallpapers.in/walls/windows_xp_bliss-wide.jpg')" )
             ]
         ]
@@ -193,19 +202,16 @@ view model =
                     ]
                 ]
                 []
-            , viewGrid model.grid
+            , viewGrid model.activeCell model.grid
             ]
         ]
 
 
-viewGrid : Grid -> Html Msg
-viewGrid grid =
+viewGrid : Maybe Cell -> Grid -> Html Msg
+viewGrid activeCell grid =
     let
         size =
             16
-
-        px x =
-            toString x ++ "px"
 
         gridWidth =
             size * List.length grid
@@ -221,6 +227,52 @@ viewGrid grid =
         gridHeight =
             size * columnHeight
 
+        markPressed : Cell -> Cell
+        markPressed cell =
+            case activeCell of
+                Just active ->
+                    if active == cell then
+                        { cell | state = Pressed }
+                    else
+                        cell
+
+                Nothing ->
+                    cell
+
+        hasPressed : Maybe Cell -> Bool
+        hasPressed active =
+            case active of
+                Just cell ->
+                    True
+
+                Nothing ->
+                    False
+
+        viewColumn column =
+            div
+                [ style
+                    [ ( "display", "inline-block" )
+                    ]
+                ]
+                (column
+                    |> List.map (markPressed >> viewCell size (hasPressed activeCell))
+                )
+    in
+    insetDiv
+        [ style
+            [ ( "width", toString gridWidth ++ "px" )
+            , ( "height", px gridHeight )
+            ]
+        ]
+        (List.map
+            viewColumn
+            grid
+        )
+
+
+viewCell : Int -> Bool -> Cell -> Html Msg
+viewCell size downOnHover cell =
+    let
         upStyle =
             [ ( "border", "2px solid #fff" )
             , ( "border-bottom-color", "#7b7b7b" )
@@ -244,56 +296,52 @@ viewGrid grid =
                     ++ extension
                 )
 
-        viewColumn column =
-            div
-                [ style
-                    [ ( "display", "inline-block" )
-                    ]
-                ]
-                (List.map
-                    (\cell ->
-                        let
-                            cellStyle =
-                                case cell.state of
-                                    Pristine ->
-                                        upStyle
+        cellStyle =
+            case cell.state of
+                Pristine ->
+                    upStyle
 
-                                    Empty ->
-                                        downStyle
+                Empty ->
+                    downStyle
 
-                                    _ ->
-                                        []
+                Pressed ->
+                    downStyle
 
-                            cellDiv =
-                                makeCellDiv cellStyle
-                        in
-                        cellDiv
-                            [ onMouseUp (MouseUpCell cell) ]
-                            (if cell.bomb then
-                                [ text "*" ]
-                             else
-                                []
-                            )
-                    )
-                    column
-                )
+                _ ->
+                    []
+
+        cellDiv =
+            makeCellDiv cellStyle
+
+        additionalEvents =
+            if downOnHover then
+                [ onMouseEnter (PressDown cell) ]
+            else
+                []
     in
-    insetDiv
-        [ style
-            [ ( "width", toString gridWidth ++ "px" )
-            , ( "height", px gridHeight )
-            ]
-        ]
-        (List.map
-            viewColumn
-            grid
+    cellDiv
+        ([ onMouseUp (MouseUpCell cell)
+         , onMouseDown (PressDown cell)
+         ]
+            ++ additionalEvents
         )
+        (if cell.bomb then
+            [ text "*" ]
+         else
+            []
+        )
+
+
+px : Int -> String
+px x =
+    toString x ++ "px"
 
 
 type alias Element msg =
     List (Html.Attribute msg) -> List (Html msg) -> Html msg
 
 
+insetDiv : Element msg
 insetDiv =
     styled div
         [ ( "border", "2px solid #7b7b7b" )
