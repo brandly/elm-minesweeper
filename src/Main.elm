@@ -166,10 +166,35 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ style [ ( "box-sizing", "border-box" ) ] ]
+    div
+        [ style
+            [ ( "box-sizing", "border-box" )
+            , ( "min-height", "100vh" )
+            , ( "width", "100%" )
+            , ( "overflow", "auto" )
+            , ( "background-image", "url('https://www.hdwallpapers.in/walls/windows_xp_bliss-wide.jpg')" )
+            ]
+        ]
         [ h1 [] [ text "~ minesweeper ~" ]
-        , viewGrid model.grid
-        , pre [] [ text (toString model.grid) ]
+        , div
+            [ style
+                [ ( "display", "inline-block" )
+                , ( "background-color", "#bdbdbd" )
+                , ( "padding", "5px" )
+                , ( "border", "2px solid #7b7b7b" )
+                , ( "border-top-color", "#fff" )
+                , ( "border-left-color", "#fff" )
+                ]
+            ]
+            [ insetDiv
+                [ style
+                    [ ( "height", "36px" )
+                    , ( "margin-bottom", "5px" )
+                    ]
+                ]
+                []
+            , viewGrid model.grid
+            ]
         ]
 
 
@@ -197,14 +222,14 @@ viewGrid grid =
             size * columnHeight
 
         upStyle =
-            [ ( "border", "2px solid #ffffff" )
+            [ ( "border", "2px solid #fff" )
             , ( "border-bottom-color", "#7b7b7b" )
             , ( "border-right-color", "#7b7b7b" )
             ]
 
         downStyle =
-            [ ( "border-right", "1px solid #838383" )
-            , ( "border-bottom", "1px solid #838383" )
+            [ ( "border-left", "1px solid #838383" )
+            , ( "border-top", "1px solid #838383" )
             ]
 
         makeCellDiv extension =
@@ -253,10 +278,9 @@ viewGrid grid =
                     column
                 )
     in
-    div
+    insetDiv
         [ style
-            [ ( "background-color", "#bdbdbd" )
-            , ( "width", toString gridWidth ++ "px" )
+            [ ( "width", toString gridWidth ++ "px" )
             , ( "height", px gridHeight )
             ]
         ]
@@ -268,6 +292,14 @@ viewGrid grid =
 
 type alias Element msg =
     List (Html.Attribute msg) -> List (Html msg) -> Html msg
+
+
+insetDiv =
+    styled div
+        [ ( "border", "2px solid #7b7b7b" )
+        , ( "border-bottom-color", "#fff" )
+        , ( "border-right-color", "#fff" )
+        ]
 
 
 styled : Element msg -> List ( String, String ) -> Element msg
