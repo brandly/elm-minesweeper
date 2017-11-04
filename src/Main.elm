@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Html exposing (Html, div, h1, p, pre, text)
 import Html.Attributes exposing (style)
-import Html.Events exposing (onMouseDown, onMouseEnter, onMouseOut, onMouseUp)
+import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseOut, onMouseUp)
 
 
 main : Program Never Model Msg
@@ -98,9 +98,14 @@ gridToCells grid =
     List.concat grid
 
 
+initialGrid : Grid
+initialGrid =
+    withBombs 40 (fromDimensions 16 16)
+
+
 initialModel : Model
 initialModel =
-    { grid = withBombs 40 (fromDimensions 16 16)
+    { grid = initialGrid
     , activeCell = Nothing
     , pressingFace = False
     }
@@ -110,6 +115,7 @@ type Msg
     = MouseUpCell Cell
     | PressDown Cell
     | PressingFace Bool
+    | ClickFace
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -129,6 +135,9 @@ update msg ({ grid } as model) =
 
         PressingFace val ->
             ( { model | pressingFace = val }, Cmd.none )
+
+        ClickFace ->
+            ( { model | grid = initialGrid }, Cmd.none )
 
 
 exposeCell : Cell -> Grid -> Grid
@@ -275,6 +284,7 @@ viewHeader pressingFace hasActiveCell =
                 , ( "text-align", "center" )
                 , ( "cursor", "default" )
                 ]
+            , onClick ClickFace
             , onMouseDown (PressingFace True)
             , onMouseUp (PressingFace False)
             , onMouseOut (PressingFace False)
