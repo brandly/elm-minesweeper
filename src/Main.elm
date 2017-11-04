@@ -15,17 +15,12 @@ main =
         }
 
 
-type CellState
-    = Pristine
-    | Flagged
-    | Active
-    | Exposed
-
-
 type alias Cell =
     { x : Int
     , y : Int
-    , state : CellState
+    , active : Bool
+    , exposed : Bool
+    , flagged : Bool
     , bomb : Bool
     }
 
@@ -51,7 +46,7 @@ fromDimensions width height =
         makeColumn : Int -> Column
         makeColumn x =
             List.range 1 height
-                |> List.map (\y -> Cell x y Pristine False)
+                |> List.map (\y -> Cell x y False False False False)
     in
     List.range 1 width
         |> List.map makeColumn
@@ -119,7 +114,7 @@ findCell : (Cell -> Bool) -> Grid -> Cell
 findCell match grid =
     let
         defaultCell =
-            Cell -1 -1 Pristine False
+            Cell -1 -1 False False False False
     in
     gridToCells grid |> findMatching defaultCell match
 
@@ -257,7 +252,7 @@ floodCells toExpose grid =
 
         newGrid =
             updateCell
-                (\cell -> { cell | state = Exposed })
+                (\cell -> { cell | exposed = True })
                 cell
                 grid
 
@@ -265,14 +260,14 @@ floodCells toExpose grid =
             if neighborBombCount cell grid == 0 then
                 getNeighbors cell grid
                     |> List.filter (\c -> not c.bomb)
-                    |> List.filter (\c -> c.state == Pristine)
+                    |> List.filter (\c -> not c.exposed && not c.flagged)
             else
                 []
 
         moreToExpose =
             if cell.bomb then
                 gridToCells newGrid
-                    |> List.filter (\c -> not (c.state == Exposed))
+                    |> List.filter (\c -> not c.exposed)
             else
                 List.concat [ tail, additional ]
     in
@@ -349,10 +344,12 @@ viewHeader pressingFace hasActiveCell =
     let
         faceDiv : Element msg
         faceDiv =
-            if pressingFace then
-                insetDiv
+            if hasActiveCell then
+                bitmapForFace Surprised
+            else if pressingFace then
+                bitmapForFace Pressed
             else
-                raisedDiv
+                bitmapForFace Smile
 
         header =
             styled insetDiv
@@ -372,8 +369,8 @@ viewHeader pressingFace hasActiveCell =
                 [ ( "display", "flex" )
                 , ( "align-items", "center" )
                 , ( "justify-content", "center" )
-                , ( "width", "24px" )
-                , ( "height", "24px" )
+                , ( "width", "26px" )
+                , ( "height", "26px" )
                 , ( "cursor", "default" )
                 ]
             , onClick ClickFace
@@ -381,13 +378,7 @@ viewHeader pressingFace hasActiveCell =
             , onMouseUp (PressingFace False)
             , onMouseOut (PressingFace False)
             ]
-            [ text
-                (if hasActiveCell then
-                    ":O"
-                 else
-                    ":)"
-                )
-            ]
+            []
         , viewDigits 0
         ]
 
@@ -438,8 +429,8 @@ viewGrid activeCell grid =
         markActive cell =
             case activeCell of
                 Just active ->
-                    if active == cell && cell.state == Pristine then
-                        { cell | state = Active }
+                    if active == cell && not cell.exposed && not cell.flagged then
+                        { cell | active = True }
                     else
                         cell
 
@@ -489,9 +480,6 @@ viewCell size downOnHover grid cell =
                 [ ( "box-sizing", "border-box" )
                 , ( "width", px size )
                 , ( "height", px size )
-                , ( "font-size", "14px" )
-                , ( "font-weight", "bold" )
-                , ( "text-align", "center" )
                 , ( "overflow", "hidden" )
                 , ( "cursor", "default" )
                 ]
@@ -553,54 +541,84 @@ raisedDiv =
         ]
 
 
+type Face
+    = Smile
+    | Pressed
+    | Surprised
+    | Sad
+    | Sunglasses
+
+
+bitmapForFace : Face -> Element msg
+bitmapForFace face =
+    let
+        pos =
+            case face of
+                Smile ->
+                    ( 0, -55 )
+
+                Pressed ->
+                    ( -26, -55 )
+
+                Surprised ->
+                    ( -52, -55 )
+
+                Sad ->
+                    ( -78, -55 )
+
+                Sunglasses ->
+                    ( -104, -55 )
+    in
+    bitmap pos
+
+
 bitmapForCell : Int -> Cell -> Element msg
 bitmapForCell neighbors cell =
     let
         pos =
-            case cell.state of
-                Exposed ->
-                    if cell.bomb then
-                        ( -64, -39 )
+            if cell.exposed then
+                if cell.bomb then
+                    if cell.flagged then
+                        ( -48, -39 )
                     else
-                        case neighbors of
-                            0 ->
-                                ( 0, -23 )
+                        ( -64, -39 )
+                else
+                    case neighbors of
+                        0 ->
+                            ( 0, -23 )
 
-                            1 ->
-                                ( -16, -23 )
+                        1 ->
+                            ( -16, -23 )
 
-                            2 ->
-                                ( -32, -23 )
+                        2 ->
+                            ( -32, -23 )
 
-                            3 ->
-                                ( -48, -23 )
+                        3 ->
+                            ( -48, -23 )
 
-                            4 ->
-                                ( -64, -23 )
+                        4 ->
+                            ( -64, -23 )
 
-                            5 ->
-                                ( -80, -23 )
+                        5 ->
+                            ( -80, -23 )
 
-                            6 ->
-                                ( -96, -23 )
+                        6 ->
+                            ( -96, -23 )
 
-                            7 ->
-                                ( -112, -23 )
+                        7 ->
+                            ( -112, -23 )
 
-                            8 ->
-                                ( -128, -23 )
+                        8 ->
+                            ( -128, -23 )
 
-                            _ ->
-                                ( 0, 0 )
-
-                Pristine ->
-                    ( 0, -39 )
-
-                Active ->
-                    ( 0, -23 )
-
-                Flagged ->
-                    ( -16, -39 )
+                        _ ->
+                            ( 0, 0 )
+            else if cell.flagged then
+                ( -16, -39 )
+            else if cell.active then
+                ( 0, -23 )
+            else
+                ( 0, -39 )
     in
     bitmap pos
 
