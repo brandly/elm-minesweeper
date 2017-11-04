@@ -18,9 +18,8 @@ main =
 type CellState
     = Pristine
     | Flagged
-    | Pressed
+    | Active
     | Empty
-    | Neighbor Int
 
 
 type alias Cell =
@@ -137,7 +136,7 @@ updateCellState cell grid =
     let
         state =
             case cell.state of
-                Pressed ->
+                Active ->
                     Empty
 
                 _ ->
@@ -153,16 +152,14 @@ updateCell : (Cell -> Cell) -> Cell -> Grid -> Grid
 updateCell newCell cell grid =
     let
         replaceCell : Column -> Column
-        replaceCell col =
+        replaceCell =
             List.map
                 (\og ->
                     if og.x == cell.x && og.y == cell.y then
-                        newCell
-                            cell
+                        newCell cell
                     else
                         og
                 )
-                col
     in
     grid |> List.map replaceCell
 
@@ -222,17 +219,19 @@ viewHeader pressingFace hasActiveCell =
                 insetDiv
             else
                 raisedDiv
+
+        header =
+            styled insetDiv
+                [ ( "display", "flex" )
+                , ( "justify-content", "space-between" )
+                , ( "align-items", "center" )
+                , ( "height", "36px" )
+                , ( "margin-bottom", "5px" )
+                , ( "padding", "0 6px" )
+                ]
     in
-    insetDiv
-        [ style
-            [ ( "display", "flex" )
-            , ( "justify-content", "space-between" )
-            , ( "align-items", "center" )
-            , ( "height", "36px" )
-            , ( "margin-bottom", "5px" )
-            , ( "padding", "0 6px" )
-            ]
-        ]
+    header
+        []
         [ viewDigits 0
         , faceDiv
             [ style
@@ -298,20 +297,20 @@ viewGrid activeCell grid =
         gridHeight =
             size * columnHeight
 
-        markPressed : Cell -> Cell
-        markPressed cell =
+        markActive : Cell -> Cell
+        markActive cell =
             case activeCell of
                 Just active ->
                     if active == cell then
-                        { cell | state = Pressed }
+                        { cell | state = Active }
                     else
                         cell
 
                 Nothing ->
                     cell
 
-        hasPressed : Maybe Cell -> Bool
-        hasPressed active =
+        hasActive : Maybe Cell -> Bool
+        hasActive active =
             case active of
                 Just cell ->
                     True
@@ -326,7 +325,7 @@ viewGrid activeCell grid =
                     ]
                 ]
                 (column
-                    |> List.map (markPressed >> viewCell size (hasPressed activeCell))
+                    |> List.map (markActive >> viewCell size (hasActive activeCell) grid)
                 )
     in
     insetDiv
@@ -338,8 +337,8 @@ viewGrid activeCell grid =
         (grid |> List.map viewColumn)
 
 
-viewCell : Int -> Bool -> Cell -> Html Msg
-viewCell size downOnHover cell =
+viewCell : Int -> Bool -> Grid -> Cell -> Html Msg
+viewCell size downOnHover grid cell =
     let
         upStyle =
             [ ( "border", "2px solid #fff" )
@@ -360,6 +359,7 @@ viewCell size downOnHover cell =
                  , ( "font-size", "10px" )
                  , ( "text-align", "center" )
                  , ( "overflow", "hidden" )
+                 , ( "cursor", "default" )
                  ]
                     ++ extension
                 )
@@ -372,7 +372,7 @@ viewCell size downOnHover cell =
                 Empty ->
                     downStyle
 
-                Pressed ->
+                Active ->
                     downStyle
 
                 _ ->
@@ -386,6 +386,9 @@ viewCell size downOnHover cell =
                 [ onMouseEnter (PressDown cell) ]
             else
                 []
+
+        count =
+            neighborBombCount cell grid
     in
     cellDiv
         ([ onMouseUp (MouseUpCell cell)
@@ -395,9 +398,24 @@ viewCell size downOnHover cell =
         )
         (if cell.bomb then
             [ text "*" ]
+         else if count > 0 then
+            [ text (toString (neighborBombCount cell grid)) ]
          else
             []
         )
+
+
+neighborBombCount : Cell -> Grid -> Int
+neighborBombCount cell grid =
+    gridToCells grid
+        |> List.filter (isNeighbor cell)
+        |> List.filter .bomb
+        |> List.length
+
+
+isNeighbor : Cell -> Cell -> Bool
+isNeighbor a b =
+    abs (a.x - b.x) <= 1 && abs (a.y - b.y) <= 1
 
 
 px : Int -> String
