@@ -57,8 +57,8 @@ fromDimensions width height =
         |> List.map makeColumn
 
 
-withBombs : Int -> Grid -> Grid
-withBombs count grid =
+withBombCount : Int -> Grid -> Grid
+withBombCount count grid =
     let
         addBomb : Grid -> Grid
         addBomb =
@@ -66,26 +66,76 @@ withBombs count grid =
                 |> updateCell (\cell -> { cell | bomb = True })
     in
     if totalBombs grid < count then
-        withBombs
+        withBombCount
             count
             (addBomb grid)
     else
         grid
 
 
+withBombPairs : List ( Int, Int ) -> Grid -> Grid
+withBombPairs pairs grid =
+    let
+        head =
+            case List.head pairs of
+                Just head ->
+                    head
+
+                Nothing ->
+                    ( -1, -1 )
+
+        tail =
+            case List.tail pairs of
+                Just tail ->
+                    tail
+
+                Nothing ->
+                    []
+
+        addBomb : Grid -> Grid
+        addBomb =
+            findCellAtPair head grid
+                |> updateCell (\cell -> { cell | bomb = True })
+    in
+    if List.length pairs > 0 then
+        withBombPairs
+            tail
+            (addBomb grid)
+    else
+        grid
+
+
+findCellAtPair : ( Int, Int ) -> Grid -> Cell
+findCellAtPair ( x, y ) grid =
+    grid |> findCell (\cell -> cell.x == x && cell.y == y)
+
+
 findEmptyCell : Grid -> Cell
 findEmptyCell grid =
+    grid |> findCell (\cell -> not cell.bomb)
+
+
+findCell : (Cell -> Bool) -> Grid -> Cell
+findCell match grid =
     let
-        empties =
-            gridToCells grid
-                |> List.filter (\cell -> not cell.bomb)
+        defaultCell =
+            Cell -1 -1 Pristine False
     in
-    case List.head empties of
+    gridToCells grid |> findMatching defaultCell match
+
+
+findMatching : a -> (a -> Bool) -> List a -> a
+findMatching default match list =
+    let
+        matches =
+            list |> List.filter match
+    in
+    case List.head matches of
         Just empty ->
             empty
 
         Nothing ->
-            Debug.crash ""
+            default
 
 
 totalBombs : Grid -> Int
@@ -98,9 +148,56 @@ gridToCells grid =
     List.concat grid
 
 
+dreamboard : List ( Int, Int )
+dreamboard =
+    [ ( 6, 1 )
+    , ( 7, 1 )
+    , ( 9, 1 )
+    , ( 12, 1 )
+    , ( 14, 1 )
+    , ( 13, 2 )
+    , ( 14, 2 )
+    , ( 15, 2 )
+    , ( 16, 2 )
+    , ( 1, 3 )
+    , ( 2, 3 )
+    , ( 10, 3 )
+    , ( 1, 5 )
+    , ( 1, 6 )
+    , ( 11, 6 )
+    , ( 1, 7 )
+    , ( 10, 7 )
+    , ( 16, 7 )
+    , ( 2, 8 )
+    , ( 16, 8 )
+    , ( 4, 9 )
+    , ( 5, 9 )
+    , ( 9, 9 )
+    , ( 16, 9 )
+    , ( 6, 10 )
+    , ( 7, 10 )
+    , ( 8, 10 )
+    , ( 7, 11 )
+    , ( 12, 11 )
+    , ( 10, 12 )
+    , ( 2, 13 )
+    , ( 12, 13 )
+    , ( 11, 14 )
+    , ( 16, 14 )
+    , ( 1, 15 )
+    , ( 5, 15 )
+    , ( 1, 16 )
+    , ( 3, 16 )
+    , ( 5, 16 )
+    , ( 10, 16 )
+    ]
+
+
 initialGrid : Grid
 initialGrid =
-    withBombs 40 (fromDimensions 16 16)
+    withBombPairs
+        dreamboard
+        (fromDimensions 16 16)
 
 
 initialModel : Model
@@ -123,8 +220,7 @@ update msg ({ grid } as model) =
     case msg of
         MouseUpCell cell ->
             ( { model
-                | grid =
-                    exposeCell cell model.grid
+                | grid = exposeCell cell model.grid
                 , activeCell = Nothing
               }
             , Cmd.none
@@ -175,18 +271,18 @@ floodCells toExpose grid =
                 cell
                 grid
 
-        neighbors : List Cell
-        neighbors =
-            getNeighbors cell grid
-
         moreToExpose : List Cell
         moreToExpose =
-            List.concat [ toExpose, neighbors ]
+            List.concat [ toExpose, getNeighbors cell grid ]
                 |> List.filter (\c -> not c.bomb)
                 |> List.filter (\c -> c.state == Pristine)
                 |> List.filter (\c -> not (c.x == cell.x && c.y == cell.y))
     in
-    if List.length moreToExpose > 0 then
+    if cell.bomb then
+        floodCells
+            (gridToCells newGrid |> List.filter (\c -> not (c.state == Exposed)))
+            newGrid
+    else if List.length moreToExpose > 0 then
         floodCells moreToExpose newGrid
     else
         newGrid
@@ -279,9 +375,11 @@ viewHeader pressingFace hasActiveCell =
         [ viewDigits 0
         , faceDiv
             [ style
-                [ ( "width", "24px" )
+                [ ( "display", "flex" )
+                , ( "align-items", "center" )
+                , ( "justify-content", "center" )
+                , ( "width", "24px" )
                 , ( "height", "24px" )
-                , ( "text-align", "center" )
                 , ( "cursor", "default" )
                 ]
             , onClick ClickFace
