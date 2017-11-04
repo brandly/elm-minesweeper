@@ -238,9 +238,7 @@ update msg ({ grid } as model) =
 
 exposeCell : Cell -> Grid -> Grid
 exposeCell cell grid =
-    floodCells
-        [ cell ]
-        grid
+    floodCells [ cell ] grid
 
 
 floodCells : List Cell -> Grid -> Grid
@@ -480,68 +478,29 @@ viewGrid activeCell grid =
 viewCell : Int -> Bool -> Grid -> Cell -> Html Msg
 viewCell size downOnHover grid cell =
     let
-        upStyle =
-            [ ( "border", "2px solid #fff" )
-            , ( "border-bottom-color", "#7b7b7b" )
-            , ( "border-right-color", "#7b7b7b" )
-            ]
+        count =
+            neighborBombCount cell grid
 
-        downStyle =
-            [ ( "border-left", "1px solid #838383" )
-            , ( "border-top", "1px solid #838383" )
-            ]
-
-        makeCellDiv extension =
-            styled div
-                ([ ( "box-sizing", "border-box" )
-                 , ( "width", px size )
-                 , ( "height", px size )
-                 , ( "font-size", "10px" )
-                 , ( "text-align", "center" )
-                 , ( "overflow", "hidden" )
-                 , ( "cursor", "default" )
-                 ]
-                    ++ extension
-                )
-
-        cellStyle =
-            case cell.state of
-                Pristine ->
-                    upStyle
-
-                Exposed ->
-                    downStyle
-
-                Active ->
-                    downStyle
-
-                _ ->
-                    []
+        base =
+            bitmapForCell count cell
 
         cellDiv =
-            makeCellDiv cellStyle
+            styled base
+                [ ( "box-sizing", "border-box" )
+                , ( "width", px size )
+                , ( "height", px size )
+                , ( "font-size", "14px" )
+                , ( "font-weight", "bold" )
+                , ( "text-align", "center" )
+                , ( "overflow", "hidden" )
+                , ( "cursor", "default" )
+                ]
 
         additionalEvents =
             if downOnHover then
                 [ onMouseEnter (PressDown cell) ]
             else
                 []
-
-        count =
-            neighborBombCount cell grid
-
-        children =
-            case cell.state of
-                Exposed ->
-                    if cell.bomb then
-                        [ text "*" ]
-                    else if count > 0 then
-                        [ text <| toString count ]
-                    else
-                        []
-
-                _ ->
-                    []
     in
     cellDiv
         ([ onMouseUp (MouseUpCell cell)
@@ -549,7 +508,7 @@ viewCell size downOnHover grid cell =
          ]
             ++ additionalEvents
         )
-        children
+        []
 
 
 neighborBombCount : Cell -> Grid -> Int
@@ -591,6 +550,70 @@ raisedDiv =
         [ ( "border", "2px solid #7b7b7b" )
         , ( "border-top-color", "#fff" )
         , ( "border-left-color", "#fff" )
+        ]
+
+
+bitmapForCell : Int -> Cell -> Element msg
+bitmapForCell neighbors cell =
+    let
+        pos =
+            case cell.state of
+                Exposed ->
+                    if cell.bomb then
+                        ( -64, -39 )
+                    else
+                        case neighbors of
+                            0 ->
+                                ( 0, -23 )
+
+                            1 ->
+                                ( -16, -23 )
+
+                            2 ->
+                                ( -32, -23 )
+
+                            3 ->
+                                ( -48, -23 )
+
+                            4 ->
+                                ( -64, -23 )
+
+                            5 ->
+                                ( -80, -23 )
+
+                            6 ->
+                                ( -96, -23 )
+
+                            7 ->
+                                ( -112, -23 )
+
+                            8 ->
+                                ( -128, -23 )
+
+                            _ ->
+                                ( 0, 0 )
+
+                Pristine ->
+                    ( 0, -39 )
+
+                Active ->
+                    ( 0, -23 )
+
+                Flagged ->
+                    ( -16, -39 )
+    in
+    bitmap pos
+
+
+bitmap : ( Int, Int ) -> Element msg
+bitmap pos =
+    let
+        bg =
+            (Tuple.first pos |> px) ++ " " ++ (Tuple.second pos |> px)
+    in
+    styled div
+        [ ( "background-image", "url(https://raw.githubusercontent.com/joelbyrd/external-resources/master/images/minesweeper.png)" )
+        , ( "background-position", bg )
         ]
 
 
