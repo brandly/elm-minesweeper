@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Html exposing (Html, div, h1, p, pre, text)
 import Html.Attributes exposing (style)
-import Html.Events exposing (onMouseDown, onMouseEnter, onMouseUp)
+import Html.Events exposing (onMouseDown, onMouseEnter, onMouseOut, onMouseUp)
 
 
 main : Program Never Model Msg
@@ -42,6 +42,7 @@ type alias Grid =
 type alias Model =
     { grid : Grid
     , activeCell : Maybe Cell
+    , pressingFace : Bool
     }
 
 
@@ -60,20 +61,15 @@ fromDimensions width height =
 withBombs : Int -> Grid -> Grid
 withBombs count grid =
     let
-        total =
-            totalBombs grid
-
-        cell =
+        addBomb : Grid -> Grid
+        addBomb =
             findEmptyCell grid
+                |> updateCell (\cell -> { cell | bomb = True })
     in
-    if total < count then
+    if totalBombs grid < count then
         withBombs
             count
-            (updateCell
-                (\cell -> { cell | bomb = True })
-                cell
-                grid
-            )
+            (addBomb grid)
     else
         grid
 
@@ -84,16 +80,13 @@ findEmptyCell grid =
         empties =
             gridToCells grid
                 |> List.filter (\cell -> not cell.bomb)
-
-        first =
-            case List.head empties of
-                Just empty ->
-                    empty
-
-                Nothing ->
-                    Debug.crash ""
     in
-    first
+    case List.head empties of
+        Just empty ->
+            empty
+
+        Nothing ->
+            Debug.crash ""
 
 
 totalBombs : Grid -> Int
@@ -110,12 +103,14 @@ initialModel : Model
 initialModel =
     { grid = withBombs 40 (fromDimensions 16 16)
     , activeCell = Nothing
+    , pressingFace = False
     }
 
 
 type Msg
     = MouseUpCell Cell
     | PressDown Cell
+    | PressingFace Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -132,6 +127,9 @@ update msg ({ grid } as model) =
 
         PressDown cell ->
             ( { model | activeCell = Just cell }, Cmd.none )
+
+        PressingFace val ->
+            ( { model | pressingFace = val }, Cmd.none )
 
 
 updateCellState : Cell -> Grid -> Grid
@@ -187,29 +185,96 @@ view model =
                 ]
 
         frame =
-            styled div
+            styled raisedDiv
                 [ ( "display", "inline-block" )
                 , ( "background-color", "#bdbdbd" )
                 , ( "padding", "5px" )
-                , ( "border", "2px solid #7b7b7b" )
-                , ( "border-top-color", "#fff" )
-                , ( "border-left-color", "#fff" )
+                , ( "position", "absolute" )
+                , ( "top", "48px" )
+                , ( "left", "96px" )
                 ]
+
+        hasActiveCell : Bool
+        hasActiveCell =
+            case model.activeCell of
+                Just cell ->
+                    True
+
+                Nothing ->
+                    False
     in
     background
         []
-        [ h1 [] [ text "~ minesweeper ~" ]
-        , frame
+        [ frame
             []
-            [ insetDiv
-                [ style
-                    [ ( "height", "36px" )
-                    , ( "margin-bottom", "5px" )
-                    ]
-                ]
-                []
+            [ viewHeader model.pressingFace hasActiveCell
             , viewGrid model.activeCell model.grid
             ]
+        ]
+
+
+viewHeader : Bool -> Bool -> Html Msg
+viewHeader pressingFace hasActiveCell =
+    let
+        faceDiv : Element msg
+        faceDiv =
+            if pressingFace then
+                insetDiv
+            else
+                raisedDiv
+    in
+    insetDiv
+        [ style
+            [ ( "display", "flex" )
+            , ( "justify-content", "space-between" )
+            , ( "align-items", "center" )
+            , ( "height", "36px" )
+            , ( "margin-bottom", "5px" )
+            , ( "padding", "0 6px" )
+            ]
+        ]
+        [ viewDigits 0
+        , faceDiv
+            [ style
+                [ ( "width", "24px" )
+                , ( "height", "24px" )
+                , ( "text-align", "center" )
+                , ( "cursor", "default" )
+                ]
+            , onMouseDown (PressingFace True)
+            , onMouseUp (PressingFace False)
+            , onMouseOut (PressingFace False)
+            ]
+            [ text
+                (if hasActiveCell then
+                    ":O"
+                 else
+                    ":)"
+                )
+            ]
+        , viewDigits 0
+        ]
+
+
+viewDigits : Int -> Html Msg
+viewDigits n =
+    let
+        frame =
+            styled div [ ( "display", "inline-block" ), ( "background", "#000" ) ]
+
+        digit =
+            styled div
+                [ ( "display", "inline-block" )
+                , ( "width", "13px" )
+                , ( "height", "23px" )
+                ]
+
+        --String.split
+    in
+    frame []
+        [ digit [] []
+        , digit [] []
+        , digit [] []
         ]
 
 
@@ -350,6 +415,15 @@ insetDiv =
         [ ( "border", "2px solid #7b7b7b" )
         , ( "border-bottom-color", "#fff" )
         , ( "border-right-color", "#fff" )
+        ]
+
+
+raisedDiv : Element msg
+raisedDiv =
+    styled div
+        [ ( "border", "2px solid #7b7b7b" )
+        , ( "border-top-color", "#fff" )
+        , ( "border-left-color", "#fff" )
         ]
 
 
