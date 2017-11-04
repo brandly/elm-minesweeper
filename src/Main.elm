@@ -254,35 +254,31 @@ floodCells toExpose grid =
                 Nothing ->
                     Debug.crash ""
 
-        state =
-            case cell.state of
-                Pristine ->
-                    Exposed
-
-                Active ->
-                    Exposed
-
-                _ ->
-                    cell.state
+        tail =
+            toExpose |> List.filter (\c -> not (c.x == cell.x && c.y == cell.y))
 
         newGrid =
             updateCell
-                (\cell -> { cell | state = state })
+                (\cell -> { cell | state = Exposed })
                 cell
                 grid
 
-        moreToExpose : List Cell
+        additional =
+            if neighborBombCount cell grid == 0 then
+                getNeighbors cell grid
+                    |> List.filter (\c -> not c.bomb)
+                    |> List.filter (\c -> c.state == Pristine)
+            else
+                []
+
         moreToExpose =
-            List.concat [ toExpose, getNeighbors cell grid ]
-                |> List.filter (\c -> not c.bomb)
-                |> List.filter (\c -> c.state == Pristine)
-                |> List.filter (\c -> not (c.x == cell.x && c.y == cell.y))
+            if cell.bomb then
+                gridToCells newGrid
+                    |> List.filter (\c -> not (c.state == Exposed))
+            else
+                List.concat [ tail, additional ]
     in
-    if cell.bomb then
-        floodCells
-            (gridToCells newGrid |> List.filter (\c -> not (c.state == Exposed)))
-            newGrid
-    else if List.length moreToExpose > 0 then
+    if List.length moreToExpose > 0 then
         floodCells moreToExpose newGrid
     else
         newGrid
