@@ -19,7 +19,7 @@ type CellState
     = Pristine
     | Flagged
     | Active
-    | Empty
+    | Exposed
 
 
 type alias Cell =
@@ -118,7 +118,7 @@ update msg ({ grid } as model) =
         MouseUpCell cell ->
             ( { model
                 | grid =
-                    updateCellState cell model.grid
+                    exposeCell cell model.grid
                 , activeCell = Nothing
               }
             , Cmd.none
@@ -131,21 +131,56 @@ update msg ({ grid } as model) =
             ( { model | pressingFace = val }, Cmd.none )
 
 
-updateCellState : Cell -> Grid -> Grid
-updateCellState cell grid =
+exposeCell : Cell -> Grid -> Grid
+exposeCell cell grid =
+    floodCells
+        [ cell ]
+        grid
+
+
+floodCells : List Cell -> Grid -> Grid
+floodCells toExpose grid =
     let
+        cell =
+            case List.head toExpose of
+                Just cell ->
+                    cell
+
+                Nothing ->
+                    Debug.crash ""
+
         state =
             case cell.state of
+                Pristine ->
+                    Exposed
+
                 Active ->
-                    Empty
+                    Exposed
 
                 _ ->
                     cell.state
+
+        newGrid =
+            updateCell
+                (\cell -> { cell | state = state })
+                cell
+                grid
+
+        neighbors : List Cell
+        neighbors =
+            getNeighbors cell grid
+
+        moreToExpose : List Cell
+        moreToExpose =
+            List.concat [ toExpose, neighbors ]
+                |> List.filter (\c -> not c.bomb)
+                |> List.filter (\c -> c.state == Pristine)
+                |> List.filter (\c -> not (c.x == cell.x && c.y == cell.y))
     in
-    updateCell
-        (\cell -> { cell | state = state })
-        cell
-        grid
+    if List.length moreToExpose > 0 then
+        floodCells moreToExpose newGrid
+    else
+        newGrid
 
 
 updateCell : (Cell -> Cell) -> Cell -> Grid -> Grid
@@ -301,7 +336,7 @@ viewGrid activeCell grid =
         markActive cell =
             case activeCell of
                 Just active ->
-                    if active == cell then
+                    if active == cell && cell.state == Pristine then
                         { cell | state = Active }
                     else
                         cell
@@ -318,15 +353,16 @@ viewGrid activeCell grid =
                 Nothing ->
                     False
 
+        renderCell =
+            viewCell size (hasActive activeCell) grid
+
         viewColumn column =
             div
                 [ style
                     [ ( "display", "inline-block" )
                     ]
                 ]
-                (column
-                    |> List.map (markActive >> viewCell size (hasActive activeCell) grid)
-                )
+                (column |> List.map (markActive >> renderCell))
     in
     insetDiv
         [ style
@@ -369,7 +405,7 @@ viewCell size downOnHover grid cell =
                 Pristine ->
                     upStyle
 
-                Empty ->
+                Exposed ->
                     downStyle
 
                 Active ->
@@ -389,6 +425,19 @@ viewCell size downOnHover grid cell =
 
         count =
             neighborBombCount cell grid
+
+        children =
+            case cell.state of
+                Exposed ->
+                    if cell.bomb then
+                        [ text "*" ]
+                    else if count > 0 then
+                        [ text <| toString count ]
+                    else
+                        []
+
+                _ ->
+                    []
     in
     cellDiv
         ([ onMouseUp (MouseUpCell cell)
@@ -396,21 +445,17 @@ viewCell size downOnHover grid cell =
          ]
             ++ additionalEvents
         )
-        (if cell.bomb then
-            [ text "*" ]
-         else if count > 0 then
-            [ text (toString (neighborBombCount cell grid)) ]
-         else
-            []
-        )
+        children
 
 
 neighborBombCount : Cell -> Grid -> Int
 neighborBombCount cell grid =
-    gridToCells grid
-        |> List.filter (isNeighbor cell)
-        |> List.filter .bomb
-        |> List.length
+    List.length <| List.filter .bomb <| getNeighbors cell grid
+
+
+getNeighbors : Cell -> Grid -> List Cell
+getNeighbors cell grid =
+    gridToCells grid |> List.filter (isNeighbor cell)
 
 
 isNeighbor : Cell -> Cell -> Bool
