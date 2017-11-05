@@ -230,6 +230,9 @@ update msg ({ grid } as model) =
     case msg of
         MouseUpCell cell ->
             let
+                grid =
+                    exposeCell cell model.grid
+
                 mode =
                     case model.mode of
                         Start ->
@@ -238,6 +241,8 @@ update msg ({ grid } as model) =
                         Play ->
                             if cell.bomb then
                                 Lose
+                            else if hasWon grid then
+                                Win
                             else
                                 Play
 
@@ -245,7 +250,7 @@ update msg ({ grid } as model) =
                             model.mode
             in
             ( { model
-                | grid = exposeCell cell model.grid
+                | grid = grid
                 , activeCell = Nothing
                 , mode = mode
               }
@@ -263,6 +268,14 @@ update msg ({ grid } as model) =
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
+
+
+hasWon : Grid -> Bool
+hasWon grid =
+    gridToCells grid
+        |> List.filter (\c -> not c.bomb && not c.exposed)
+        |> List.length
+        |> (==) 0
 
 
 exposeCell : Cell -> Grid -> Grid
@@ -299,11 +312,7 @@ floodCells toExpose grid =
                 []
 
         moreToExpose =
-            if cell.bomb then
-                gridToCells newGrid
-                    |> List.filter (\c -> not c.exposed && c.bomb)
-            else
-                List.concat [ tail, additional ]
+            List.concat [ tail, additional ]
     in
     if List.length moreToExpose > 0 then
         floodCells moreToExpose newGrid
@@ -384,7 +393,7 @@ view model =
 
 
 viewHeader : Bool -> Bool -> Int -> Int -> GameMode -> Html Msg
-viewHeader pressingFace hasActiveCell remainingBombs time mode =
+viewHeader pressingFace hasActiveCell remainingFlags time mode =
     let
         faceDiv : Element msg
         faceDiv =
@@ -392,6 +401,8 @@ viewHeader pressingFace hasActiveCell remainingBombs time mode =
                 bitmapForFace Pressed
             else if mode == Lose then
                 bitmapForFace Sad
+            else if mode == Win then
+                bitmapForFace Sunglasses
             else if hasActiveCell then
                 bitmapForFace Surprised
             else
@@ -409,7 +420,12 @@ viewHeader pressingFace hasActiveCell remainingBombs time mode =
     in
     header
         []
-        [ viewDigits remainingBombs
+        [ viewDigits
+            (if mode == Win then
+                0
+             else
+                remainingFlags
+            )
         , faceDiv
             [ style
                 [ ( "display", "flex" )
@@ -541,7 +557,7 @@ viewCell size downOnHover grid mode cell =
             neighborBombCount cell grid
 
         base =
-            bitmapForCell count cell
+            bitmapForCell count mode cell
 
         cellDiv =
             styled base
@@ -691,49 +707,65 @@ bitmapForFace face =
     bitmap pos
 
 
-bitmapForCell : Int -> Cell -> Element msg
-bitmapForCell neighbors cell =
+bitmapForCell : Int -> GameMode -> Cell -> Element msg
+bitmapForCell neighbors mode cell =
     let
+        mapNum n =
+            case n of
+                0 ->
+                    ( 0, -23 )
+
+                1 ->
+                    ( -16, -23 )
+
+                2 ->
+                    ( -32, -23 )
+
+                3 ->
+                    ( -48, -23 )
+
+                4 ->
+                    ( -64, -23 )
+
+                5 ->
+                    ( -80, -23 )
+
+                6 ->
+                    ( -96, -23 )
+
+                7 ->
+                    ( -112, -23 )
+
+                8 ->
+                    ( -128, -23 )
+
+                _ ->
+                    ( 0, 0 )
+
+        flag =
+            ( -16, -39 )
+
+        misflagged =
+            ( -48, -39 )
+
+        bomb =
+            ( -64, -39 )
+
         pos =
             if cell.exposed then
                 if cell.bomb then
-                    if cell.flagged then
-                        ( -48, -39 )
-                    else
-                        ( -64, -39 )
+                    bomb
                 else
-                    case neighbors of
-                        0 ->
-                            ( 0, -23 )
-
-                        1 ->
-                            ( -16, -23 )
-
-                        2 ->
-                            ( -32, -23 )
-
-                        3 ->
-                            ( -48, -23 )
-
-                        4 ->
-                            ( -64, -23 )
-
-                        5 ->
-                            ( -80, -23 )
-
-                        6 ->
-                            ( -96, -23 )
-
-                        7 ->
-                            ( -112, -23 )
-
-                        8 ->
-                            ( -128, -23 )
-
-                        _ ->
-                            ( 0, 0 )
-            else if cell.flagged then
-                ( -16, -39 )
+                    mapNum neighbors
+            else if cell.flagged || cell.bomb && mode == Win then
+                flag
+            else if mode == Lose && cell.bomb then
+                if cell.flagged then
+                    flag
+                else
+                    bomb
+            else if mode == Lose && not cell.bomb && cell.flagged then
+                misflagged
             else if cell.active then
                 ( 0, -23 )
             else
