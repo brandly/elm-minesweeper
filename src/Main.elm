@@ -226,28 +226,42 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ grid } as model) =
+update msg model =
     case msg of
         MouseUpCell cell ->
             let
-                grid =
-                    exposeCell cell model.grid
-
                 mode =
-                    case model.mode of
-                        Start ->
+                    if model.mode == Start || model.mode == Play then
+                        if cellToCheck.bomb then
+                            Lose
+                        else if hasWon grid then
+                            Win
+                        else
                             Play
+                    else
+                        model.mode
 
-                        Play ->
-                            if cell.bomb then
-                                Lose
-                            else if hasWon grid then
-                                Win
-                            else
-                                Play
+                cellToCheck =
+                    if model.mode == Start then
+                        newCell
+                    else
+                        cell
 
-                        _ ->
-                            model.mode
+                newCell =
+                    findCellAtPair ( cell.x, cell.y ) newGrid
+
+                newGrid =
+                    withBombCount model.bombCount <|
+                        updateCell
+                            (\cell -> { cell | exposed = True })
+                            cell
+                            model.grid
+
+                grid =
+                    if model.mode == Start then
+                        exposeCell newCell newGrid
+                    else
+                        exposeCell cell model.grid
             in
             ( { model
                 | grid = grid
