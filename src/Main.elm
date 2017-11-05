@@ -3,6 +3,7 @@ module Main exposing (..)
 import Html exposing (Html, div, h1, p, pre, text)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseOut, onMouseUp)
+import Time exposing (Time, second)
 
 
 main : Program Never Model Msg
@@ -33,11 +34,20 @@ type alias Grid =
     List Column
 
 
+type GameMode
+    = Start
+    | Play
+    | Win
+    | Lose
+
+
 type alias Model =
     { grid : Grid
     , activeCell : Maybe Cell
     , pressingFace : Bool
     , bombCount : Int
+    , time : Int
+    , mode : GameMode
     }
 
 
@@ -202,6 +212,8 @@ initialModel =
     , activeCell = Nothing
     , pressingFace = False
     , bombCount = 40
+    , time = 0
+    , mode = Start
     }
 
 
@@ -210,15 +222,26 @@ type Msg
     | PressDown Cell
     | PressingFace Bool
     | ClickFace
+    | TimeSecond Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg ({ grid } as model) =
     case msg of
         MouseUpCell cell ->
+            let
+                mode =
+                    case model.mode of
+                        Start ->
+                            Play
+
+                        _ ->
+                            model.mode
+            in
             ( { model
                 | grid = exposeCell cell model.grid
                 , activeCell = Nothing
+                , mode = mode
               }
             , Cmd.none
             )
@@ -230,7 +253,10 @@ update msg ({ grid } as model) =
             ( { model | pressingFace = val }, Cmd.none )
 
         ClickFace ->
-            ( { model | grid = initialGrid }, Cmd.none )
+            ( { model | grid = initialGrid, time = 0, mode = Start }, Cmd.none )
+
+        TimeSecond _ ->
+            ( { model | time = model.time + 1 }, Cmd.none )
 
 
 exposeCell : Cell -> Grid -> Grid
@@ -297,7 +323,12 @@ updateCell newCell cell grid =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch []
+    case model.mode of
+        Play ->
+            Time.every Time.second TimeSecond
+
+        _ ->
+            Sub.none
 
 
 view : Model -> Html Msg
@@ -340,14 +371,14 @@ view model =
         []
         [ frame
             []
-            [ viewHeader model.pressingFace hasActiveCell (model.bombCount - flaggedCount)
+            [ viewHeader model.pressingFace hasActiveCell (model.bombCount - flaggedCount) model.time
             , viewGrid model.activeCell model.grid
             ]
         ]
 
 
-viewHeader : Bool -> Bool -> Int -> Html Msg
-viewHeader pressingFace hasActiveCell remainingBombs =
+viewHeader : Bool -> Bool -> Int -> Int -> Html Msg
+viewHeader pressingFace hasActiveCell remainingBombs time =
     let
         faceDiv : Element msg
         faceDiv =
@@ -386,7 +417,7 @@ viewHeader pressingFace hasActiveCell remainingBombs =
             , onMouseOut (PressingFace False)
             ]
             []
-        , viewDigits 0
+        , viewDigits time
         ]
 
 
