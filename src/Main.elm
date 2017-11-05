@@ -37,6 +37,7 @@ type alias Model =
     { grid : Grid
     , activeCell : Maybe Cell
     , pressingFace : Bool
+    , bombCount : Int
     }
 
 
@@ -200,6 +201,7 @@ initialModel =
     { grid = initialGrid
     , activeCell = Nothing
     , pressingFace = False
+    , bombCount = 40
     }
 
 
@@ -267,7 +269,7 @@ floodCells toExpose grid =
         moreToExpose =
             if cell.bomb then
                 gridToCells newGrid
-                    |> List.filter (\c -> not c.exposed)
+                    |> List.filter (\c -> not c.exposed && c.bomb)
             else
                 List.concat [ tail, additional ]
     in
@@ -328,19 +330,24 @@ view model =
 
                 Nothing ->
                     False
+
+        flaggedCount =
+            gridToCells model.grid
+                |> List.filter .flagged
+                |> List.length
     in
     background
         []
         [ frame
             []
-            [ viewHeader model.pressingFace hasActiveCell
+            [ viewHeader model.pressingFace hasActiveCell (model.bombCount - flaggedCount)
             , viewGrid model.activeCell model.grid
             ]
         ]
 
 
-viewHeader : Bool -> Bool -> Html Msg
-viewHeader pressingFace hasActiveCell =
+viewHeader : Bool -> Bool -> Int -> Html Msg
+viewHeader pressingFace hasActiveCell remainingBombs =
     let
         faceDiv : Element msg
         faceDiv =
@@ -363,7 +370,7 @@ viewHeader pressingFace hasActiveCell =
     in
     header
         []
-        [ viewDigits 0
+        [ viewDigits remainingBombs
         , faceDiv
             [ style
                 [ ( "display", "flex" )
@@ -389,20 +396,42 @@ viewDigits n =
         frame =
             styled div [ ( "display", "inline-block" ), ( "background", "#000" ) ]
 
-        digit =
-            styled div
+        digit el =
+            styled el
                 [ ( "display", "inline-block" )
                 , ( "width", "13px" )
                 , ( "height", "23px" )
                 ]
 
-        --String.split
+        minLen n str =
+            if String.length str < n then
+                minLen n ("0" ++ str)
+            else
+                str
+
+        str =
+            minLen 3 (toString n)
+
+        toInt str =
+            case String.toInt str of
+                Ok num ->
+                    num
+
+                Err _ ->
+                    0
+
+        children =
+            String.split "" str
+                |> List.map (toInt >> bitmapForInt >> digit >> (\c -> c [] []))
     in
-    frame []
-        [ digit [] []
-        , digit [] []
-        , digit [] []
+    frame
+        [ style
+            [ ( "height", "23px" )
+            , ( "border", "1px solid" )
+            , ( "border-color", "#808080 #fff #fff #808080" )
+            ]
         ]
+        children
 
 
 viewGrid : Maybe Cell -> Grid -> Html Msg
@@ -539,6 +568,50 @@ raisedDiv =
         , ( "border-top-color", "#fff" )
         , ( "border-left-color", "#fff" )
         ]
+
+
+bitmapForInt : Int -> Element msg
+bitmapForInt n =
+    let
+        pos =
+            if n >= 0 && n <= 9 then
+                case n of
+                    0 ->
+                        ( 0, 0 )
+
+                    1 ->
+                        ( -13, 0 )
+
+                    2 ->
+                        ( -26, 0 )
+
+                    3 ->
+                        ( -39, 0 )
+
+                    4 ->
+                        ( -52, 0 )
+
+                    5 ->
+                        ( -65, 0 )
+
+                    6 ->
+                        ( -78, 0 )
+
+                    7 ->
+                        ( -91, 0 )
+
+                    8 ->
+                        ( -104, 0 )
+
+                    9 ->
+                        ( -117, 0 )
+
+                    _ ->
+                        Debug.crash ""
+            else
+                ( 0, 0 )
+    in
+    bitmap pos
 
 
 type Face
