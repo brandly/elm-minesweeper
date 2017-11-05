@@ -235,6 +235,12 @@ update msg ({ grid } as model) =
                         Start ->
                             Play
 
+                        Play ->
+                            if cell.bomb then
+                                Lose
+                            else
+                                Play
+
                         _ ->
                             model.mode
             in
@@ -371,21 +377,23 @@ view model =
         []
         [ frame
             []
-            [ viewHeader model.pressingFace hasActiveCell (model.bombCount - flaggedCount) model.time
-            , viewGrid model.activeCell model.grid
+            [ viewHeader model.pressingFace hasActiveCell (model.bombCount - flaggedCount) model.time model.mode
+            , viewGrid model.activeCell model.grid model.mode
             ]
         ]
 
 
-viewHeader : Bool -> Bool -> Int -> Int -> Html Msg
-viewHeader pressingFace hasActiveCell remainingBombs time =
+viewHeader : Bool -> Bool -> Int -> Int -> GameMode -> Html Msg
+viewHeader pressingFace hasActiveCell remainingBombs time mode =
     let
         faceDiv : Element msg
         faceDiv =
-            if hasActiveCell then
-                bitmapForFace Surprised
-            else if pressingFace then
+            if pressingFace then
                 bitmapForFace Pressed
+            else if mode == Lose then
+                bitmapForFace Sad
+            else if hasActiveCell then
+                bitmapForFace Surprised
             else
                 bitmapForFace Smile
 
@@ -465,8 +473,8 @@ viewDigits n =
         children
 
 
-viewGrid : Maybe Cell -> Grid -> Html Msg
-viewGrid activeCell grid =
+viewGrid : Maybe Cell -> Grid -> GameMode -> Html Msg
+viewGrid activeCell grid mode =
     let
         size =
             16
@@ -507,7 +515,7 @@ viewGrid activeCell grid =
                     False
 
         renderCell =
-            viewCell size (hasActive activeCell) grid
+            viewCell size (hasActive activeCell) grid mode
 
         viewColumn column =
             div
@@ -526,8 +534,8 @@ viewGrid activeCell grid =
         (grid |> List.map viewColumn)
 
 
-viewCell : Int -> Bool -> Grid -> Cell -> Html Msg
-viewCell size downOnHover grid cell =
+viewCell : Int -> Bool -> Grid -> GameMode -> Cell -> Html Msg
+viewCell size downOnHover grid mode cell =
     let
         count =
             neighborBombCount cell grid
@@ -544,18 +552,25 @@ viewCell size downOnHover grid cell =
                 , ( "cursor", "default" )
                 ]
 
-        additionalEvents =
-            if downOnHover then
+        isPlayable =
+            mode == Play || mode == Start
+
+        upDownEvents =
+            if isPlayable then
+                [ onMouseUp (MouseUpCell cell)
+                , onMouseDown (PressDown cell)
+                ]
+            else
+                []
+
+        hoverEvents =
+            if downOnHover && isPlayable then
                 [ onMouseEnter (PressDown cell) ]
             else
                 []
     in
     cellDiv
-        ([ onMouseUp (MouseUpCell cell)
-         , onMouseDown (PressDown cell)
-         ]
-            ++ additionalEvents
-        )
+        (List.concat [ upDownEvents, hoverEvents ])
         []
 
 
