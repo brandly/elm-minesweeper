@@ -754,7 +754,7 @@ bitmapForCell neighbors mode cell =
         pos =
             if cell.exposed then
                 if cell.bomb then
-                    bomb
+                    ( -32, -39 )
                 else
                     mapNum neighbors
             else if cell.flagged || cell.bomb && mode == Win then
