@@ -3,7 +3,8 @@ module Main exposing (..)
 import Array
 import Html exposing (Html, div, h1, p, pre, text)
 import Html.Attributes exposing (style)
-import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseOut, onMouseUp)
+import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseOut, onMouseUp, onWithOptions)
+import Json.Decode as Json
 import Random exposing (Seed)
 import Time exposing (Time, second)
 
@@ -220,6 +221,7 @@ initialModel =
 type Msg
     = MouseUpCell Cell
     | PressDown Cell
+    | ToggleFlag Cell
     | PressingFace Bool
     | ClickFace
     | TimeSecond Time
@@ -281,29 +283,31 @@ update msg model =
                     else
                         Cmd.none
             in
-            ( { model
-                | grid = grid
-                , activeCell = Nothing
-                , mode = mode
-              }
-            , cmd
-            )
+            if model.activeCell == Nothing then
+                ( model, Cmd.none )
+            else if cell.flagged then
+                ( { model | activeCell = Nothing }, Cmd.none )
+            else
+                ( { model
+                    | grid = grid
+                    , activeCell = Nothing
+                    , mode = mode
+                  }
+                , cmd
+                )
 
         ArmRandomCells randoms ->
             let
                 available =
                     gridToCells model.grid
                         |> List.filter (\c -> not c.bomb && not c.exposed)
-
-                availableArr =
-                    Array.fromList
-                        available
+                        |> Array.fromList
 
                 cellsToArm : List Cell
                 cellsToArm =
                     List.map
                         (\index ->
-                            case Array.get index availableArr of
+                            case Array.get index available of
                                 Just cell ->
                                     cell
 
@@ -331,6 +335,13 @@ update msg model =
 
         PressDown cell ->
             ( { model | activeCell = Just cell }, Cmd.none )
+
+        ToggleFlag cell ->
+            let
+                grid =
+                    updateCell (\c -> { c | flagged = not c.flagged }) cell model.grid
+            in
+            ( { model | grid = grid, activeCell = Nothing }, Cmd.none )
 
         PressingFace val ->
             ( { model | pressingFace = val }, Cmd.none )
@@ -673,9 +684,13 @@ viewCell size downOnHover grid mode cell =
 
         upDownEvents =
             if isPlayable then
-                [ onMouseUp (MouseUpCell cell)
-                , onMouseDown (PressDown cell)
-                ]
+                if cell.flagged then
+                    [ onRightClick (ToggleFlag cell) ]
+                else
+                    [ onMouseUp (MouseUpCell cell)
+                    , onMouseDown (PressDown cell)
+                    , onRightClick (ToggleFlag cell)
+                    ]
             else
                 []
 
@@ -688,6 +703,13 @@ viewCell size downOnHover grid mode cell =
     cellDiv
         (List.concat [ upDownEvents, hoverEvents ])
         []
+
+
+onRightClick : msg -> Html.Attribute msg
+onRightClick message =
+    onWithOptions "contextmenu"
+        { preventDefault = True, stopPropagation = False }
+        (Json.succeed message)
 
 
 neighborBombCount : Cell -> Grid -> Int
@@ -857,8 +879,6 @@ bitmapForCell neighbors mode cell =
                     ( -32, -39 )
                 else
                     mapNum neighbors
-            else if cell.flagged || cell.bomb && mode == Win then
-                flag
             else if mode == Lose && cell.bomb then
                 if cell.flagged then
                     flag
@@ -866,6 +886,8 @@ bitmapForCell neighbors mode cell =
                     bomb
             else if mode == Lose && not cell.bomb && cell.flagged then
                 misflagged
+            else if cell.flagged || cell.bomb && mode == Win then
+                flag
             else if cell.active then
                 ( 0, -23 )
             else
