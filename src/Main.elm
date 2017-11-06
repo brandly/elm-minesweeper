@@ -1,8 +1,10 @@
 module Main exposing (..)
 
+import Array
 import Html exposing (Html, div, h1, p, pre, text)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseOut, onMouseUp)
+import Random exposing (Seed)
 import Time exposing (Time, second)
 
 
@@ -146,7 +148,7 @@ findMatching default match list =
 
 totalBombs : Grid -> Int
 totalBombs grid =
-    List.length <| List.filter .bomb (gridToCells grid)
+    List.length <| List.filter .bomb <| gridToCells grid
 
 
 gridToCells : Grid -> List Cell
@@ -201,9 +203,7 @@ dreamboard =
 
 initialGrid : Grid
 initialGrid =
-    withBombPairs
-        dreamboard
-        (fromDimensions 16 16)
+    fromDimensions 16 16
 
 
 initialModel : Model
@@ -223,6 +223,19 @@ type Msg
     | PressingFace Bool
     | ClickFace
     | TimeSecond Time
+    | ArmRandomCells (List Int)
+
+
+generateRandomInts : Int -> Grid -> Cmd Msg
+generateRandomInts bombCount grid =
+    let
+        available =
+            gridToCells grid
+                |> List.filter (\c -> not c.bomb && not c.exposed)
+    in
+    Random.generate ArmRandomCells <|
+        Random.list bombCount <|
+            Random.int 0 (List.length available - 1)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -251,25 +264,70 @@ update msg model =
                     findCellAtPair ( cell.x, cell.y ) newGrid
 
                 newGrid =
-                    withBombCount model.bombCount <|
-                        updateCell
-                            (\cell -> { cell | exposed = True })
-                            cell
-                            model.grid
+                    updateCell
+                        (\cell -> { cell | exposed = True })
+                        cell
+                        model.grid
 
                 grid =
                     if model.mode == Start then
-                        exposeCell newCell newGrid
+                        newGrid
                     else
-                        exposeCell cell model.grid
+                        floodCell cell model.grid
+
+                cmd =
+                    if model.mode == Start then
+                        generateRandomInts model.bombCount grid
+                    else
+                        Cmd.none
             in
             ( { model
                 | grid = grid
                 , activeCell = Nothing
                 , mode = mode
               }
-            , Cmd.none
+            , cmd
             )
+
+        ArmRandomCells randoms ->
+            let
+                available =
+                    gridToCells model.grid
+                        |> List.filter (\c -> not c.bomb && not c.exposed)
+
+                availableArr =
+                    Array.fromList
+                        available
+
+                cellsToArm : List Cell
+                cellsToArm =
+                    List.map
+                        (\index ->
+                            case Array.get index availableArr of
+                                Just cell ->
+                                    cell
+
+                                Nothing ->
+                                    Debug.crash "nah"
+                        )
+                        randoms
+
+                grid =
+                    updateCells
+                        (\c -> { c | bomb = True })
+                        cellsToArm
+                        model.grid
+
+                exposedCell =
+                    grid |> findCell .exposed
+
+                bombCount =
+                    List.length <| List.filter .bomb <| gridToCells grid
+            in
+            if bombCount < model.bombCount then
+                ( { model | grid = grid }, generateRandomInts (model.bombCount - bombCount) grid )
+            else
+                ( { model | grid = floodCell exposedCell grid }, Cmd.none )
 
         PressDown cell ->
             ( { model | activeCell = Just cell }, Cmd.none )
@@ -292,8 +350,8 @@ hasWon grid =
         |> (==) 0
 
 
-exposeCell : Cell -> Grid -> Grid
-exposeCell cell grid =
+floodCell : Cell -> Grid -> Grid
+floodCell cell grid =
     floodCells [ cell ] grid
 
 
@@ -334,15 +392,43 @@ floodCells toExpose grid =
         newGrid
 
 
+updateCells : (Cell -> Cell) -> List Cell -> Grid -> Grid
+updateCells update cells grid =
+    let
+        head =
+            case List.head cells of
+                Just cell ->
+                    cell
+
+                Nothing ->
+                    Cell -1 -1 False False False False
+
+        tail =
+            case List.tail cells of
+                Just cells ->
+                    cells
+
+                Nothing ->
+                    []
+
+        newGrid =
+            updateCell update head grid
+    in
+    if List.length cells > 0 then
+        updateCells update tail newGrid
+    else
+        grid
+
+
 updateCell : (Cell -> Cell) -> Cell -> Grid -> Grid
-updateCell newCell cell grid =
+updateCell update cell grid =
     let
         replaceCell : Column -> Column
         replaceCell =
             List.map
                 (\og ->
                     if og.x == cell.x && og.y == cell.y then
-                        newCell cell
+                        update cell
                     else
                         og
                 )
