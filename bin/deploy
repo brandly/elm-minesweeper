@@ -1,0 +1,45 @@
+#!/bin/bash
+set -e
+set -u
+
+gh_pages_dir="gh-pages"
+dist_dir="dist"
+
+function main {
+    build
+    # minfy
+    copy
+    commit_and_push_to_gh
+}
+
+function build {
+    mkdir -p $dist_dir
+    elm-make src/Main.elm --output $dist_dir/the.js
+}
+
+function copy {
+    cp $dist_dir/the.js gh-pages/
+    cp src/index.html gh-pages/
+}
+
+function commit_and_push_to_gh {
+    current_commit_hash=$(get_current_commit_hash)
+    current_branch_name=$(get_current_branch_name)
+
+    (
+        cd "$gh_pages_dir"
+        git add .
+        git commit -m "deploying branch $current_branch_name at $current_commit_hash"
+        git push
+    )
+}
+
+function get_current_commit_hash {
+    git rev-parse --short HEAD
+}
+
+function get_current_branch_name {
+    git name-rev --name-only HEAD
+}
+
+main
