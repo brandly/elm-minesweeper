@@ -9155,8 +9155,8 @@ var _user$project$Main$bitmapForInt = function (n) {
 					return _elm_lang$core$Native_Utils.crashCase(
 						'Main',
 						{
-							start: {line: 740, column: 17},
-							end: {line: 772, column: 39}
+							start: {line: 762, column: 17},
+							end: {line: 794, column: 39}
 						},
 						_p0)('');
 			}
@@ -9192,6 +9192,13 @@ var _user$project$Main$isNeighbor = F2(
 			_elm_lang$core$Basics$abs(a.y - b.y),
 			1) < 1);
 	});
+var _user$project$Main$onRightClick = function (message) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'contextmenu',
+		{preventDefault: true, stopPropagation: false},
+		_elm_lang$core$Json_Decode$succeed(message));
+};
 var _user$project$Main$viewDigits = function (n) {
 	var toInt = function (str) {
 		var _p3 = _elm_lang$core$String$toInt(str);
@@ -9504,8 +9511,8 @@ var _user$project$Main$floodCells = F2(
 					return _elm_lang$core$Native_Utils.crashCase(
 						'Main',
 						{
-							start: {line: 362, column: 13},
-							end: {line: 367, column: 35}
+							start: {line: 373, column: 13},
+							end: {line: 378, column: 35}
 						},
 						_p5)('');
 				}
@@ -9776,7 +9783,7 @@ var _user$project$Main$bitmapForCell = F3(
 					return {ctor: '_Tuple2', _0: 0, _1: 0};
 			}
 		};
-		var pos = cell.exposed ? (cell.bomb ? {ctor: '_Tuple2', _0: -32, _1: -39} : mapNum(neighbors)) : ((cell.flagged || (cell.bomb && _elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Win))) ? flag : ((_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Lose) && cell.bomb) ? (cell.flagged ? flag : bomb) : ((_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Lose) && ((!cell.bomb) && cell.flagged)) ? misflagged : (cell.active ? {ctor: '_Tuple2', _0: 0, _1: -23} : {ctor: '_Tuple2', _0: 0, _1: -39}))));
+		var pos = cell.exposed ? (cell.bomb ? {ctor: '_Tuple2', _0: -32, _1: -39} : mapNum(neighbors)) : ((_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Lose) && cell.bomb) ? (cell.flagged ? flag : bomb) : ((_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Lose) && ((!cell.bomb) && cell.flagged)) ? misflagged : ((cell.flagged || (cell.bomb && _elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Win))) ? flag : (cell.active ? {ctor: '_Tuple2', _0: 0, _1: -23} : {ctor: '_Tuple2', _0: 0, _1: -39}))));
 		return _user$project$Main$bitmap(pos);
 	});
 var _user$project$Main$Play = {ctor: 'Play'};
@@ -9827,33 +9834,39 @@ var _user$project$Main$update = F2(
 					newGrid);
 				var cellToCheck = _elm_lang$core$Native_Utils.eq(model.mode, _user$project$Main$Start) ? newCell : _p16;
 				var mode = (_elm_lang$core$Native_Utils.eq(model.mode, _user$project$Main$Start) || _elm_lang$core$Native_Utils.eq(model.mode, _user$project$Main$Play)) ? (cellToCheck.bomb ? _user$project$Main$Lose : (_user$project$Main$hasWon(grid) ? _user$project$Main$Win : _user$project$Main$Play)) : model.mode;
-				return {
+				return _elm_lang$core$Native_Utils.eq(model.activeCell, _elm_lang$core$Maybe$Nothing) ? {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none} : (_p16.flagged ? {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{activeCell: _elm_lang$core$Maybe$Nothing}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				} : {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{grid: grid, activeCell: _elm_lang$core$Maybe$Nothing, mode: mode}),
 					_1: cmd
-				};
+				});
 			case 'ArmRandomCells':
-				var available = A2(
-					_elm_lang$core$List$filter,
-					function (c) {
-						return (!c.bomb) && (!c.exposed);
-					},
-					_user$project$Main$gridToCells(model.grid));
-				var availableArr = _elm_lang$core$Array$fromList(available);
+				var available = _elm_lang$core$Array$fromList(
+					A2(
+						_elm_lang$core$List$filter,
+						function (c) {
+							return (!c.bomb) && (!c.exposed);
+						},
+						_user$project$Main$gridToCells(model.grid)));
 				var cellsToArm = A2(
 					_elm_lang$core$List$map,
 					function (index) {
-						var _p17 = A2(_elm_lang$core$Array$get, index, availableArr);
+						var _p17 = A2(_elm_lang$core$Array$get, index, available);
 						if (_p17.ctor === 'Just') {
 							return _p17._0;
 						} else {
 							return _elm_lang$core$Native_Utils.crashCase(
 								'Main',
 								{
-									start: {line: 306, column: 29},
-									end: {line: 311, column: 54}
+									start: {line: 310, column: 29},
+									end: {line: 315, column: 54}
 								},
 								_p17)('nah');
 						}
@@ -9906,6 +9919,23 @@ var _user$project$Main$update = F2(
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
+			case 'ToggleFlag':
+				var grid = A3(
+					_user$project$Main$updateCell,
+					function (c) {
+						return _elm_lang$core$Native_Utils.update(
+							c,
+							{flagged: !c.flagged});
+					},
+					_p15._0,
+					model.grid);
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{grid: grid, activeCell: _elm_lang$core$Maybe$Nothing}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
 			case 'PressingFace':
 				return {
 					ctor: '_Tuple2',
@@ -9947,6 +9977,9 @@ var _user$project$Main$ClickFace = {ctor: 'ClickFace'};
 var _user$project$Main$PressingFace = function (a) {
 	return {ctor: 'PressingFace', _0: a};
 };
+var _user$project$Main$ToggleFlag = function (a) {
+	return {ctor: 'ToggleFlag', _0: a};
+};
 var _user$project$Main$PressDown = function (a) {
 	return {ctor: 'PressDown', _0: a};
 };
@@ -9956,7 +9989,12 @@ var _user$project$Main$MouseUpCell = function (a) {
 var _user$project$Main$viewCell = F5(
 	function (size, downOnHover, grid, mode, cell) {
 		var isPlayable = _elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Play) || _elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Start);
-		var upDownEvents = isPlayable ? {
+		var upDownEvents = isPlayable ? (cell.flagged ? {
+			ctor: '::',
+			_0: _user$project$Main$onRightClick(
+				_user$project$Main$ToggleFlag(cell)),
+			_1: {ctor: '[]'}
+		} : {
 			ctor: '::',
 			_0: _elm_lang$html$Html_Events$onMouseUp(
 				_user$project$Main$MouseUpCell(cell)),
@@ -9964,9 +10002,14 @@ var _user$project$Main$viewCell = F5(
 				ctor: '::',
 				_0: _elm_lang$html$Html_Events$onMouseDown(
 					_user$project$Main$PressDown(cell)),
-				_1: {ctor: '[]'}
+				_1: {
+					ctor: '::',
+					_0: _user$project$Main$onRightClick(
+						_user$project$Main$ToggleFlag(cell)),
+					_1: {ctor: '[]'}
+				}
 			}
-		} : {ctor: '[]'};
+		}) : {ctor: '[]'};
 		var hoverEvents = (downOnHover && isPlayable) ? {
 			ctor: '::',
 			_0: _elm_lang$html$Html_Events$onMouseEnter(
