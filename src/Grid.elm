@@ -19,8 +19,8 @@ type alias Grid =
     List Column
 
 
-fromDimensions : Int -> Int -> Grid
-fromDimensions width height =
+fromDimensions : ( Int, Int ) -> Grid
+fromDimensions ( width, height ) =
     let
         makeColumn : Int -> Column
         makeColumn x =

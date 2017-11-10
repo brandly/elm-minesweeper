@@ -27,23 +27,62 @@ type alias Model =
     { grid : Grid
     , activeCell : Maybe Cell
     , pressingFace : Bool
-    , bombCount : Int
+    , game : Game
     , time : Int
     , mode : GameMode
     }
 
 
-initialGrid : Grid
-initialGrid =
-    Grid.fromDimensions 16 16
+type Game
+    = Beginner
+    | Intermediate
+    | Expert
+    | Custom Int Int Int
+
+
+getBombCount : Game -> Int
+getBombCount game =
+    case game of
+        Beginner ->
+            10
+
+        Intermediate ->
+            40
+
+        Expert ->
+            99
+
+        Custom _ _ count ->
+            count
+
+
+getDimensions : Game -> ( Int, Int )
+getDimensions game =
+    case game of
+        Beginner ->
+            ( 9, 9 )
+
+        Intermediate ->
+            ( 16, 16 )
+
+        Expert ->
+            ( 30, 16 )
+
+        Custom x y _ ->
+            ( x, y )
+
+
+initialGame : Game
+initialGame =
+    Intermediate
 
 
 initialModel : Model
 initialModel =
-    { grid = initialGrid
+    { grid = Grid.fromDimensions (getDimensions initialGame)
     , activeCell = Nothing
     , pressingFace = False
-    , bombCount = 40
+    , game = initialGame
     , time = 0
     , mode = Start
     }
@@ -64,10 +103,13 @@ generateRandomInts bombCount grid =
     let
         available =
             grid |> Grid.filter (\c -> not c.bomb && not c.exposed)
+
+        max =
+            List.length available - 1
     in
     Random.generate ArmRandomCells <|
         Random.list bombCount <|
-            Random.int 0 (List.length available - 1)
+            Random.int 0 max
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -107,9 +149,12 @@ update msg model =
                     else
                         Grid.floodCell cell model.grid
 
+                bombCount =
+                    getBombCount model.game
+
                 cmd =
                     if model.mode == Start then
-                        generateRandomInts model.bombCount grid
+                        generateRandomInts bombCount grid
                     else
                         Cmd.none
             in
@@ -157,9 +202,12 @@ update msg model =
 
                 bombCount =
                     Grid.totalBombs grid
+
+                desiredBombCount =
+                    getBombCount model.game
             in
-            if bombCount < model.bombCount then
-                ( { model | grid = grid }, generateRandomInts (model.bombCount - bombCount) grid )
+            if bombCount < desiredBombCount then
+                ( { model | grid = grid }, generateRandomInts (desiredBombCount - bombCount) grid )
             else
                 ( { model | grid = Grid.floodCell exposedCell grid }, Cmd.none )
 
@@ -177,7 +225,7 @@ update msg model =
             ( { model | pressingFace = val }, Cmd.none )
 
         ClickFace ->
-            ( { model | grid = initialGrid, time = 0, mode = Start }, Cmd.none )
+            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start }, Cmd.none )
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -233,7 +281,7 @@ view model =
         []
         [ frame
             []
-            [ viewHeader model.pressingFace hasActiveCell (model.bombCount - flaggedCount) model.time model.mode
+            [ viewHeader model.pressingFace hasActiveCell (getBombCount model.game - flaggedCount) model.time model.mode
             , viewGrid model.activeCell model.grid model.mode
             ]
         ]
