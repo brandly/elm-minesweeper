@@ -2,7 +2,7 @@ module Bitmap exposing (..)
 
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode)
-import Grid exposing (Cell)
+import Grid exposing (Cell, CellState(Exposed, Flagged))
 import Html exposing (div)
 
 
@@ -126,19 +126,19 @@ forCell neighbors mode cell =
             ( -64, -39 )
 
         pos =
-            if cell.exposed then
+            if cell.state == Exposed then
                 if cell.bomb then
                     ( -32, -39 )
                 else
                     mapNum neighbors
             else if mode == GameMode.Lose && cell.bomb then
-                if cell.flagged then
+                if cell.state == Flagged then
                     flag
                 else
                     bomb
-            else if mode == GameMode.Lose && not cell.bomb && cell.flagged then
+            else if mode == GameMode.Lose && not cell.bomb && cell.state == Flagged then
                 misflagged
-            else if cell.flagged || cell.bomb && mode == GameMode.Win then
+            else if cell.state == Flagged || cell.bomb && mode == GameMode.Win then
                 flag
             else if cell.active then
                 ( 0, -23 )

@@ -4,7 +4,7 @@ import Array
 import Bitmap as Bitmap exposing (Face(..))
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
-import Grid exposing (Cell, Column, Grid)
+import Grid exposing (Cell, CellState(Exposed, Flagged, Initial), Column, Grid)
 import Html exposing (Html, div)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseOut, onMouseUp, onWithOptions)
@@ -102,7 +102,7 @@ generateRandomInts : Int -> Grid -> Cmd Msg
 generateRandomInts bombCount grid =
     let
         available =
-            grid |> Grid.filter (\c -> not c.bomb && not c.exposed)
+            grid |> Grid.filter (\c -> not c.bomb && c.state /= Exposed)
 
         max =
             List.length available - 1
@@ -139,7 +139,7 @@ update msg model =
 
                 newGrid =
                     Grid.updateCell
-                        (\cell -> { cell | exposed = True })
+                        (\cell -> { cell | state = Exposed })
                         cell
                         model.grid
 
@@ -160,7 +160,7 @@ update msg model =
             in
             if model.activeCell == Nothing then
                 ( model, Cmd.none )
-            else if cell.flagged then
+            else if cell.state == Flagged then
                 ( { model | activeCell = Nothing }, Cmd.none )
             else
                 ( { model
@@ -175,7 +175,7 @@ update msg model =
             let
                 available =
                     model.grid
-                        |> Grid.filter (\c -> not c.bomb && not c.exposed)
+                        |> Grid.filter (\c -> not c.bomb && c.state /= Exposed)
                         |> Array.fromList
 
                 cellsToArm : List Cell
@@ -198,7 +198,7 @@ update msg model =
                         model.grid
 
                 exposedCell =
-                    grid |> Grid.findCell .exposed
+                    grid |> Grid.findCell (\c -> c.state == Exposed)
 
                 bombCount =
                     Grid.totalBombs grid
@@ -217,9 +217,23 @@ update msg model =
         ToggleFlag cell ->
             let
                 grid =
-                    Grid.updateCell (\c -> { c | flagged = not c.flagged }) cell model.grid
+                    Grid.updateCell
+                        (\c ->
+                            { c
+                                | state =
+                                    if cell.state == Flagged then
+                                        Initial
+                                    else
+                                        Flagged
+                            }
+                        )
+                        cell
+                        model.grid
             in
-            ( { model | grid = grid, activeCell = Nothing }, Cmd.none )
+            if cell.state == Exposed then
+                ( model, Cmd.none )
+            else
+                ( { model | grid = grid, activeCell = Nothing }, Cmd.none )
 
         PressingFace val ->
             ( { model | pressingFace = val }, Cmd.none )
@@ -274,7 +288,7 @@ view model =
 
         flaggedCount =
             model.grid
-                |> Grid.filter .flagged
+                |> Grid.filter (\c -> c.state == Flagged)
                 |> List.length
     in
     background
@@ -408,7 +422,7 @@ viewGrid activeCell grid mode =
         markActive cell =
             case activeCell of
                 Just active ->
-                    if active == cell && not cell.exposed && not cell.flagged then
+                    if active == cell && cell.state == Initial then
                         { cell | active = True }
                     else
                         cell
@@ -468,7 +482,7 @@ viewCell size downOnHover grid mode cell =
 
         upDownEvents =
             if isPlayable then
-                if cell.flagged then
+                if cell.state == Flagged then
                     [ onRightClick (ToggleFlag cell) ]
                 else
                     [ onMouseUp (MouseUpCell cell)

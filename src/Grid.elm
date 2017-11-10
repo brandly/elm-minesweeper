@@ -1,12 +1,17 @@
 module Grid exposing (..)
 
 
+type CellState
+    = Initial
+    | Flagged
+    | Exposed
+
+
 type alias Cell =
     { x : Int
     , y : Int
+    , state : CellState
     , active : Bool
-    , exposed : Bool
-    , flagged : Bool
     , bomb : Bool
     }
 
@@ -25,7 +30,7 @@ fromDimensions ( width, height ) =
         makeColumn : Int -> Column
         makeColumn x =
             List.range 1 height
-                |> List.map (\y -> Cell x y False False False False)
+                |> List.map (\y -> Cell x y Initial False False)
     in
     List.range 1 width
         |> List.map makeColumn
@@ -77,7 +82,7 @@ findCell : (Cell -> Bool) -> Grid -> Cell
 findCell match grid =
     let
         defaultCell =
-            Cell -1 -1 False False False False
+            Cell -1 -1 Initial False False
     in
     gridToCells grid |> findMatching defaultCell match
 
@@ -110,7 +115,7 @@ updateCells update cells grid =
                     cell
 
                 Nothing ->
-                    Cell -1 -1 False False False False
+                    Cell -1 -1 Initial False False
 
         tail =
             case List.tail cells of
@@ -168,7 +173,7 @@ totalBombs grid =
 isCleared : Grid -> Bool
 isCleared grid =
     grid
-        |> filter (\c -> not c.bomb && not c.exposed)
+        |> filter (\c -> not c.bomb && c.state /= Exposed)
         |> List.length
         |> (==) 0
 
@@ -194,14 +199,14 @@ floodCells toExpose grid =
 
         newGrid =
             updateCell
-                (\cell -> { cell | exposed = True })
+                (\cell -> { cell | state = Exposed })
                 cell
                 grid
 
         additional =
             if neighborBombCount cell grid == 0 then
                 getNeighbors cell grid
-                    |> List.filter (\c -> not c.bomb && not c.exposed && not c.flagged)
+                    |> List.filter (\c -> not c.bomb && c.state == Initial)
             else
                 []
 
