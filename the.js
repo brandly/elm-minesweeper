@@ -9051,7 +9051,13 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _user$project$Main$styled = F4(
+var _user$project$Element$px = function (x) {
+	return A2(
+		_elm_lang$core$Basics_ops['++'],
+		_elm_lang$core$Basics$toString(x),
+		'px');
+};
+var _user$project$Element$styled = F4(
 	function (el, css, attrs, children) {
 		return A2(
 			el,
@@ -9065,245 +9071,13 @@ var _user$project$Main$styled = F4(
 				attrs),
 			children);
 	});
-var _user$project$Main$raisedDiv = A2(
-	_user$project$Main$styled,
-	_elm_lang$html$Html$div,
-	{
-		ctor: '::',
-		_0: {ctor: '_Tuple2', _0: 'border', _1: '2px solid #7b7b7b'},
-		_1: {
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'border-top-color', _1: '#fff'},
-			_1: {
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'border-left-color', _1: '#fff'},
-				_1: {ctor: '[]'}
-			}
-		}
-	});
-var _user$project$Main$insetDiv = A2(
-	_user$project$Main$styled,
-	_elm_lang$html$Html$div,
-	{
-		ctor: '::',
-		_0: {ctor: '_Tuple2', _0: 'border', _1: '2px solid #7b7b7b'},
-		_1: {
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'border-bottom-color', _1: '#fff'},
-			_1: {
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'border-right-color', _1: '#fff'},
-				_1: {ctor: '[]'}
-			}
-		}
-	});
-var _user$project$Main$px = function (x) {
-	return A2(
-		_elm_lang$core$Basics_ops['++'],
-		_elm_lang$core$Basics$toString(x),
-		'px');
-};
-var _user$project$Main$bitmap = function (pos) {
-	var bg = A2(
-		_elm_lang$core$Basics_ops['++'],
-		_user$project$Main$px(
-			_elm_lang$core$Tuple$first(pos)),
-		A2(
-			_elm_lang$core$Basics_ops['++'],
-			' ',
-			_user$project$Main$px(
-				_elm_lang$core$Tuple$second(pos))));
-	return A2(
-		_user$project$Main$styled,
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'background-image', _1: 'url(https://raw.githubusercontent.com/joelbyrd/external-resources/master/images/minesweeper.png)'},
-			_1: {
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'background-position', _1: bg},
-				_1: {ctor: '[]'}
-			}
-		});
-};
-var _user$project$Main$bitmapForInt = function (n) {
-	var pos = function () {
-		if ((_elm_lang$core$Native_Utils.cmp(n, 0) > -1) && (_elm_lang$core$Native_Utils.cmp(n, 9) < 1)) {
-			var _p0 = n;
-			switch (_p0) {
-				case 0:
-					return {ctor: '_Tuple2', _0: 0, _1: 0};
-				case 1:
-					return {ctor: '_Tuple2', _0: -13, _1: 0};
-				case 2:
-					return {ctor: '_Tuple2', _0: -26, _1: 0};
-				case 3:
-					return {ctor: '_Tuple2', _0: -39, _1: 0};
-				case 4:
-					return {ctor: '_Tuple2', _0: -52, _1: 0};
-				case 5:
-					return {ctor: '_Tuple2', _0: -65, _1: 0};
-				case 6:
-					return {ctor: '_Tuple2', _0: -78, _1: 0};
-				case 7:
-					return {ctor: '_Tuple2', _0: -91, _1: 0};
-				case 8:
-					return {ctor: '_Tuple2', _0: -104, _1: 0};
-				case 9:
-					return {ctor: '_Tuple2', _0: -117, _1: 0};
-				default:
-					return _elm_lang$core$Native_Utils.crashCase(
-						'Main',
-						{
-							start: {line: 762, column: 17},
-							end: {line: 794, column: 39}
-						},
-						_p0)('');
-			}
-		} else {
-			return {ctor: '_Tuple2', _0: 0, _1: 0};
-		}
-	}();
-	return _user$project$Main$bitmap(pos);
-};
-var _user$project$Main$bitmapForFace = function (face) {
-	var pos = function () {
-		var _p2 = face;
-		switch (_p2.ctor) {
-			case 'Smile':
-				return {ctor: '_Tuple2', _0: 0, _1: -55};
-			case 'Pressed':
-				return {ctor: '_Tuple2', _0: -26, _1: -55};
-			case 'Surprised':
-				return {ctor: '_Tuple2', _0: -52, _1: -55};
-			case 'Sad':
-				return {ctor: '_Tuple2', _0: -78, _1: -55};
-			default:
-				return {ctor: '_Tuple2', _0: -104, _1: -55};
-		}
-	}();
-	return _user$project$Main$bitmap(pos);
-};
-var _user$project$Main$isNeighbor = F2(
-	function (a, b) {
-		return (_elm_lang$core$Native_Utils.cmp(
-			_elm_lang$core$Basics$abs(a.x - b.x),
-			1) < 1) && (_elm_lang$core$Native_Utils.cmp(
-			_elm_lang$core$Basics$abs(a.y - b.y),
-			1) < 1);
-	});
-var _user$project$Main$onRightClick = function (message) {
-	return A3(
-		_elm_lang$html$Html_Events$onWithOptions,
-		'contextmenu',
-		{preventDefault: true, stopPropagation: false},
-		_elm_lang$core$Json_Decode$succeed(message));
-};
-var _user$project$Main$viewDigits = function (n) {
-	var toInt = function (str) {
-		var _p3 = _elm_lang$core$String$toInt(str);
-		if (_p3.ctor === 'Ok') {
-			return _p3._0;
-		} else {
-			return 0;
-		}
-	};
-	var minLen = F2(
-		function (n, str) {
-			minLen:
-			while (true) {
-				if (_elm_lang$core$Native_Utils.cmp(
-					_elm_lang$core$String$length(str),
-					n) < 0) {
-					var _v3 = n,
-						_v4 = A2(_elm_lang$core$Basics_ops['++'], '0', str);
-					n = _v3;
-					str = _v4;
-					continue minLen;
-				} else {
-					return str;
-				}
-			}
-		});
-	var str = A2(
-		minLen,
-		3,
-		_elm_lang$core$Basics$toString(n));
-	var digit = function (el) {
-		return A2(
-			_user$project$Main$styled,
-			el,
-			{
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
-				_1: {
-					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 'width', _1: '13px'},
-					_1: {
-						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'height', _1: '23px'},
-						_1: {ctor: '[]'}
-					}
-				}
-			});
-	};
-	var children = A2(
-		_elm_lang$core$List$map,
-		function (_p4) {
-			return function (c) {
-				return A2(
-					c,
-					{ctor: '[]'},
-					{ctor: '[]'});
-			}(
-				digit(
-					_user$project$Main$bitmapForInt(
-						toInt(_p4))));
-		},
-		A2(_elm_lang$core$String$split, '', str));
-	var frame = A2(
-		_user$project$Main$styled,
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
-			_1: {
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'background', _1: '#000'},
-				_1: {ctor: '[]'}
-			}
-		});
-	return A2(
-		frame,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$style(
-				{
-					ctor: '::',
-					_0: {ctor: '_Tuple2', _0: 'height', _1: '23px'},
-					_1: {
-						ctor: '::',
-						_0: {ctor: '_Tuple2', _0: 'border', _1: '1px solid'},
-						_1: {
-							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'border-color', _1: '#808080 #fff #fff #808080'},
-							_1: {ctor: '[]'}
-						}
-					}
-				}),
-			_1: {ctor: '[]'}
-		},
-		children);
-};
-var _user$project$Main$updateCell = F3(
-	function (update, cell, grid) {
-		var replaceCell = _elm_lang$core$List$map(
-			function (og) {
-				return (_elm_lang$core$Native_Utils.eq(og.x, cell.x) && _elm_lang$core$Native_Utils.eq(og.y, cell.y)) ? update(cell) : og;
-			});
-		return A2(_elm_lang$core$List$map, replaceCell, grid);
-	});
-var _user$project$Main$dreamboard = {
+
+var _user$project$GameMode$Lose = {ctor: 'Lose'};
+var _user$project$GameMode$Win = {ctor: 'Win'};
+var _user$project$GameMode$Play = {ctor: 'Play'};
+var _user$project$GameMode$Start = {ctor: 'Start'};
+
+var _user$project$Grid$dreamboard = {
 	ctor: '::',
 	_0: {ctor: '_Tuple2', _0: 6, _1: 1},
 	_1: {
@@ -9464,10 +9238,82 @@ var _user$project$Main$dreamboard = {
 		}
 	}
 };
-var _user$project$Main$gridToCells = function (grid) {
+var _user$project$Grid$isNeighbor = F2(
+	function (a, b) {
+		return (_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$Basics$abs(a.x - b.x),
+			1) < 1) && (_elm_lang$core$Native_Utils.cmp(
+			_elm_lang$core$Basics$abs(a.y - b.y),
+			1) < 1);
+	});
+var _user$project$Grid$updateCell = F3(
+	function (update, cell, grid) {
+		var replaceCell = _elm_lang$core$List$map(
+			function (og) {
+				return (_elm_lang$core$Native_Utils.eq(og.x, cell.x) && _elm_lang$core$Native_Utils.eq(og.y, cell.y)) ? update(cell) : og;
+			});
+		return A2(_elm_lang$core$List$map, replaceCell, grid);
+	});
+var _user$project$Grid$updateCells = F3(
+	function (update, cells, grid) {
+		return A3(
+			_elm_lang$core$List$foldl,
+			_user$project$Grid$updateCell(update),
+			grid,
+			cells);
+	});
+var _user$project$Grid$findMatching = F3(
+	function ($default, match, list) {
+		var matches = A2(_elm_lang$core$List$filter, match, list);
+		var _p0 = _elm_lang$core$List$head(matches);
+		if (_p0.ctor === 'Just') {
+			return _p0._0;
+		} else {
+			return $default;
+		}
+	});
+var _user$project$Grid$gridToCells = function (grid) {
 	return _elm_lang$core$List$concat(grid);
 };
-var _user$project$Main$hasWon = function (grid) {
+var _user$project$Grid$filter = F2(
+	function (filter, grid) {
+		return A2(
+			_elm_lang$core$List$filter,
+			filter,
+			_user$project$Grid$gridToCells(grid));
+	});
+var _user$project$Grid$getNeighbors = F2(
+	function (cell, grid) {
+		return A2(
+			_user$project$Grid$filter,
+			_user$project$Grid$isNeighbor(cell),
+			grid);
+	});
+var _user$project$Grid$neighborBombCount = F2(
+	function (cell, grid) {
+		return _elm_lang$core$List$length(
+			A2(
+				_elm_lang$core$List$filter,
+				function (_) {
+					return _.bomb;
+				},
+				A2(_user$project$Grid$getNeighbors, cell, grid)));
+	});
+var _user$project$Grid$totalBombs = function (grid) {
+	return _elm_lang$core$List$length(
+		A2(
+			_user$project$Grid$filter,
+			function (_) {
+				return _.bomb;
+			},
+			grid));
+};
+var _user$project$Grid$Cell = F5(
+	function (a, b, c, d, e) {
+		return {x: a, y: b, state: c, active: d, bomb: e};
+	});
+var _user$project$Grid$Exposed = {ctor: 'Exposed'};
+var _user$project$Grid$isCleared = function (grid) {
 	return A2(
 		F2(
 			function (x, y) {
@@ -9476,102 +9322,154 @@ var _user$project$Main$hasWon = function (grid) {
 		0,
 		_elm_lang$core$List$length(
 			A2(
-				_elm_lang$core$List$filter,
+				_user$project$Grid$filter,
 				function (c) {
-					return (!c.bomb) && (!c.exposed);
+					return (!c.bomb) && (!_elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Exposed));
 				},
-				_user$project$Main$gridToCells(grid))));
+				grid)));
 };
-var _user$project$Main$getNeighbors = F2(
-	function (cell, grid) {
-		return A2(
-			_elm_lang$core$List$filter,
-			_user$project$Main$isNeighbor(cell),
-			_user$project$Main$gridToCells(grid));
-	});
-var _user$project$Main$neighborBombCount = F2(
+var _user$project$Grid$Flagged = {ctor: 'Flagged'};
+var _user$project$Grid$neighborFlagCount = F2(
 	function (cell, grid) {
 		return _elm_lang$core$List$length(
 			A2(
 				_elm_lang$core$List$filter,
-				function (_) {
-					return _.bomb;
+				function (c) {
+					return _elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Flagged);
 				},
-				A2(_user$project$Main$getNeighbors, cell, grid)));
+				A2(_user$project$Grid$getNeighbors, cell, grid)));
 	});
-var _user$project$Main$floodCells = F2(
-	function (toExpose, grid) {
-		floodCells:
+var _user$project$Grid$Initial = {ctor: 'Initial'};
+var _user$project$Grid$fromDimensions = function (_p1) {
+	var _p2 = _p1;
+	var makeColumn = function (x) {
+		return A2(
+			_elm_lang$core$List$map,
+			function (y) {
+				return A5(_user$project$Grid$Cell, x, y, _user$project$Grid$Initial, false, false);
+			},
+			A2(_elm_lang$core$List$range, 1, _p2._1));
+	};
+	return A2(
+		_elm_lang$core$List$map,
+		makeColumn,
+		A2(_elm_lang$core$List$range, 1, _p2._0));
+};
+var _user$project$Grid$findCell = F2(
+	function (match, grid) {
+		var defaultCell = A5(_user$project$Grid$Cell, -1, -1, _user$project$Grid$Initial, false, false);
+		return A3(
+			_user$project$Grid$findMatching,
+			defaultCell,
+			match,
+			_user$project$Grid$gridToCells(grid));
+	});
+var _user$project$Grid$findCellAtPair = F2(
+	function (_p3, grid) {
+		var _p4 = _p3;
+		return A2(
+			_user$project$Grid$findCell,
+			function (cell) {
+				return _elm_lang$core$Native_Utils.eq(cell.x, _p4._0) && _elm_lang$core$Native_Utils.eq(cell.y, _p4._1);
+			},
+			grid);
+	});
+var _user$project$Grid$withBombPairs = F2(
+	function (pairs, grid) {
+		withBombPairs:
 		while (true) {
-			var cell = function () {
-				var _p5 = _elm_lang$core$List$head(toExpose);
+			var tail = function () {
+				var _p5 = _elm_lang$core$List$tail(pairs);
 				if (_p5.ctor === 'Just') {
 					return _p5._0;
 				} else {
-					return _elm_lang$core$Native_Utils.crashCase(
-						'Main',
-						{
-							start: {line: 373, column: 13},
-							end: {line: 378, column: 35}
-						},
-						_p5)('');
+					return {ctor: '[]'};
 				}
 			}();
-			var tail = A2(
-				_elm_lang$core$List$filter,
-				function (c) {
-					return !(_elm_lang$core$Native_Utils.eq(c.x, cell.x) && _elm_lang$core$Native_Utils.eq(c.y, cell.y));
-				},
-				toExpose);
-			var newGrid = A3(
-				_user$project$Main$updateCell,
+			var head = function () {
+				var _p6 = _elm_lang$core$List$head(pairs);
+				if (_p6.ctor === 'Just') {
+					return _p6._0;
+				} else {
+					return {ctor: '_Tuple2', _0: -1, _1: -1};
+				}
+			}();
+			var addBomb = A2(
+				_user$project$Grid$updateCell,
 				function (cell) {
 					return _elm_lang$core$Native_Utils.update(
 						cell,
-						{exposed: true});
+						{bomb: true});
 				},
-				cell,
-				grid);
-			var additional = _elm_lang$core$Native_Utils.eq(
-				A2(_user$project$Main$neighborBombCount, cell, grid),
-				0) ? A2(
-				_elm_lang$core$List$filter,
-				function (c) {
-					return (!c.exposed) && (!c.flagged);
-				},
-				A2(
-					_elm_lang$core$List$filter,
-					function (c) {
-						return !c.bomb;
-					},
-					A2(_user$project$Main$getNeighbors, cell, grid))) : {ctor: '[]'};
-			var moreToExpose = _elm_lang$core$List$concat(
-				{
-					ctor: '::',
-					_0: tail,
-					_1: {
-						ctor: '::',
-						_0: additional,
-						_1: {ctor: '[]'}
-					}
-				});
+				A2(_user$project$Grid$findCellAtPair, head, grid));
 			if (_elm_lang$core$Native_Utils.cmp(
-				_elm_lang$core$List$length(moreToExpose),
+				_elm_lang$core$List$length(pairs),
 				0) > 0) {
-				var _v6 = moreToExpose,
-					_v7 = newGrid;
-				toExpose = _v6;
-				grid = _v7;
+				var _v5 = tail,
+					_v6 = addBomb(grid);
+				pairs = _v5;
+				grid = _v6;
+				continue withBombPairs;
+			} else {
+				return grid;
+			}
+		}
+	});
+var _user$project$Grid$toggleFlag = F2(
+	function (cell, grid) {
+		var state = _elm_lang$core$Native_Utils.eq(cell.state, _user$project$Grid$Exposed) ? _user$project$Grid$Exposed : (_elm_lang$core$Native_Utils.eq(cell.state, _user$project$Grid$Flagged) ? _user$project$Grid$Initial : _user$project$Grid$Flagged);
+		return A3(
+			_user$project$Grid$updateCell,
+			function (c) {
+				return _elm_lang$core$Native_Utils.update(
+					c,
+					{state: state});
+			},
+			cell,
+			grid);
+	});
+var _user$project$Grid$floodCells = F2(
+	function (cells, grid) {
+		floodCells:
+		while (true) {
+			var expose = _user$project$Grid$updateCell(
+				function (c) {
+					return _elm_lang$core$Native_Utils.update(
+						c,
+						{state: _user$project$Grid$Exposed});
+				});
+			var newGrid = A3(_elm_lang$core$List$foldl, expose, grid, cells);
+			var additional = _elm_lang$core$List$concat(
+				A2(
+					_elm_lang$core$List$map,
+					function (cell) {
+						return _elm_lang$core$Native_Utils.eq(
+							A2(_user$project$Grid$neighborBombCount, cell, newGrid),
+							0) ? A2(
+							_elm_lang$core$List$filter,
+							function (c) {
+								return (!c.bomb) && _elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Initial);
+							},
+							A2(_user$project$Grid$getNeighbors, cell, newGrid)) : {ctor: '[]'};
+					},
+					cells));
+			if (_elm_lang$core$Native_Utils.cmp(
+				_elm_lang$core$List$length(additional),
+				0) > 0) {
+				var _v7 = additional,
+					_v8 = newGrid;
+				cells = _v7;
+				grid = _v8;
 				continue floodCells;
 			} else {
 				return newGrid;
 			}
 		}
 	});
-var _user$project$Main$floodCell = F2(
+var _user$project$Grid$floodCell = F2(
 	function (cell, grid) {
 		return A2(
-			_user$project$Main$floodCells,
+			_user$project$Grid$floodCells,
 			{
 				ctor: '::',
 				_0: cell,
@@ -9579,188 +9477,48 @@ var _user$project$Main$floodCell = F2(
 			},
 			grid);
 	});
-var _user$project$Main$totalBombs = function (grid) {
-	return _elm_lang$core$List$length(
-		A2(
+var _user$project$Grid$exposeNeighbors = F2(
+	function (cell, grid) {
+		var neighbors = A2(
 			_elm_lang$core$List$filter,
-			function (_) {
-				return _.bomb;
+			function (c) {
+				return _elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Initial);
 			},
-			_user$project$Main$gridToCells(grid)));
-};
-var _user$project$Main$findMatching = F3(
-	function ($default, match, list) {
-		var matches = A2(_elm_lang$core$List$filter, match, list);
-		var _p7 = _elm_lang$core$List$head(matches);
-		if (_p7.ctor === 'Just') {
-			return _p7._0;
-		} else {
-			return $default;
-		}
+			A2(_user$project$Grid$getNeighbors, cell, grid));
+		return A2(_user$project$Grid$floodCells, neighbors, grid);
 	});
-var _user$project$Main$Cell = F6(
-	function (a, b, c, d, e, f) {
-		return {x: a, y: b, active: c, exposed: d, flagged: e, bomb: f};
-	});
-var _user$project$Main$fromDimensions = F2(
-	function (width, height) {
-		var makeColumn = function (x) {
-			return A2(
-				_elm_lang$core$List$map,
-				function (y) {
-					return A6(_user$project$Main$Cell, x, y, false, false, false, false);
-				},
-				A2(_elm_lang$core$List$range, 1, height));
-		};
-		return A2(
-			_elm_lang$core$List$map,
-			makeColumn,
-			A2(_elm_lang$core$List$range, 1, width));
-	});
-var _user$project$Main$initialGrid = A2(_user$project$Main$fromDimensions, 16, 16);
-var _user$project$Main$findCell = F2(
-	function (match, grid) {
-		var defaultCell = A6(_user$project$Main$Cell, -1, -1, false, false, false, false);
-		return A3(
-			_user$project$Main$findMatching,
-			defaultCell,
-			match,
-			_user$project$Main$gridToCells(grid));
-	});
-var _user$project$Main$findCellAtPair = F2(
-	function (_p8, grid) {
-		var _p9 = _p8;
-		return A2(
-			_user$project$Main$findCell,
-			function (cell) {
-				return _elm_lang$core$Native_Utils.eq(cell.x, _p9._0) && _elm_lang$core$Native_Utils.eq(cell.y, _p9._1);
-			},
-			grid);
-	});
-var _user$project$Main$withBombPairs = F2(
-	function (pairs, grid) {
-		withBombPairs:
-		while (true) {
-			var tail = function () {
-				var _p10 = _elm_lang$core$List$tail(pairs);
-				if (_p10.ctor === 'Just') {
-					return _p10._0;
-				} else {
-					return {ctor: '[]'};
-				}
-			}();
-			var head = function () {
-				var _p11 = _elm_lang$core$List$head(pairs);
-				if (_p11.ctor === 'Just') {
-					return _p11._0;
-				} else {
-					return {ctor: '_Tuple2', _0: -1, _1: -1};
-				}
-			}();
-			var addBomb = A2(
-				_user$project$Main$updateCell,
-				function (cell) {
-					return _elm_lang$core$Native_Utils.update(
-						cell,
-						{bomb: true});
-				},
-				A2(_user$project$Main$findCellAtPair, head, grid));
-			if (_elm_lang$core$Native_Utils.cmp(
-				_elm_lang$core$List$length(pairs),
-				0) > 0) {
-				var _v12 = tail,
-					_v13 = addBomb(grid);
-				pairs = _v12;
-				grid = _v13;
-				continue withBombPairs;
-			} else {
-				return grid;
-			}
-		}
-	});
-var _user$project$Main$findEmptyCell = function (grid) {
+
+var _user$project$Bitmap$bitmap = function (pos) {
+	var bg = A2(
+		_elm_lang$core$Basics_ops['++'],
+		_user$project$Element$px(
+			_elm_lang$core$Tuple$first(pos)),
+		A2(
+			_elm_lang$core$Basics_ops['++'],
+			' ',
+			_user$project$Element$px(
+				_elm_lang$core$Tuple$second(pos))));
 	return A2(
-		_user$project$Main$findCell,
-		function (cell) {
-			return !cell.bomb;
-		},
-		grid);
+		_user$project$Element$styled,
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'background-image', _1: 'url(https://raw.githubusercontent.com/joelbyrd/external-resources/master/images/minesweeper.png)'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'background-position', _1: bg},
+				_1: {ctor: '[]'}
+			}
+		});
 };
-var _user$project$Main$withBombCount = F2(
-	function (count, grid) {
-		withBombCount:
-		while (true) {
-			var addBomb = A2(
-				_user$project$Main$updateCell,
-				function (cell) {
-					return _elm_lang$core$Native_Utils.update(
-						cell,
-						{bomb: true});
-				},
-				_user$project$Main$findEmptyCell(grid));
-			if (_elm_lang$core$Native_Utils.cmp(
-				_user$project$Main$totalBombs(grid),
-				count) < 0) {
-				var _v14 = count,
-					_v15 = addBomb(grid);
-				count = _v14;
-				grid = _v15;
-				continue withBombCount;
-			} else {
-				return grid;
-			}
-		}
-	});
-var _user$project$Main$updateCells = F3(
-	function (update, cells, grid) {
-		updateCells:
-		while (true) {
-			var tail = function () {
-				var _p12 = _elm_lang$core$List$tail(cells);
-				if (_p12.ctor === 'Just') {
-					return _p12._0;
-				} else {
-					return {ctor: '[]'};
-				}
-			}();
-			var head = function () {
-				var _p13 = _elm_lang$core$List$head(cells);
-				if (_p13.ctor === 'Just') {
-					return _p13._0;
-				} else {
-					return A6(_user$project$Main$Cell, -1, -1, false, false, false, false);
-				}
-			}();
-			var newGrid = A3(_user$project$Main$updateCell, update, head, grid);
-			if (_elm_lang$core$Native_Utils.cmp(
-				_elm_lang$core$List$length(cells),
-				0) > 0) {
-				var _v18 = update,
-					_v19 = tail,
-					_v20 = newGrid;
-				update = _v18;
-				cells = _v19;
-				grid = _v20;
-				continue updateCells;
-			} else {
-				return grid;
-			}
-		}
-	});
-var _user$project$Main$Model = F6(
-	function (a, b, c, d, e, f) {
-		return {grid: a, activeCell: b, pressingFace: c, bombCount: d, time: e, mode: f};
-	});
-var _user$project$Main$Lose = {ctor: 'Lose'};
-var _user$project$Main$Win = {ctor: 'Win'};
-var _user$project$Main$bitmapForCell = F3(
+var _user$project$Bitmap$forCell = F3(
 	function (neighbors, mode, cell) {
 		var bomb = {ctor: '_Tuple2', _0: -64, _1: -39};
 		var misflagged = {ctor: '_Tuple2', _0: -48, _1: -39};
 		var flag = {ctor: '_Tuple2', _0: -16, _1: -39};
 		var mapNum = function (n) {
-			var _p14 = n;
-			switch (_p14) {
+			var _p0 = n;
+			switch (_p0) {
 				case 0:
 					return {ctor: '_Tuple2', _0: 0, _1: -23};
 				case 1:
@@ -9783,97 +9541,375 @@ var _user$project$Main$bitmapForCell = F3(
 					return {ctor: '_Tuple2', _0: 0, _1: 0};
 			}
 		};
-		var pos = cell.exposed ? (cell.bomb ? {ctor: '_Tuple2', _0: -32, _1: -39} : mapNum(neighbors)) : ((_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Lose) && cell.bomb) ? (cell.flagged ? flag : bomb) : ((_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Lose) && ((!cell.bomb) && cell.flagged)) ? misflagged : ((cell.flagged || (cell.bomb && _elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Win))) ? flag : (cell.active ? {ctor: '_Tuple2', _0: 0, _1: -23} : {ctor: '_Tuple2', _0: 0, _1: -39}))));
-		return _user$project$Main$bitmap(pos);
+		var pos = _elm_lang$core$Native_Utils.eq(cell.state, _user$project$Grid$Exposed) ? (cell.bomb ? {ctor: '_Tuple2', _0: -32, _1: -39} : mapNum(neighbors)) : ((_elm_lang$core$Native_Utils.eq(mode, _user$project$GameMode$Lose) && cell.bomb) ? (_elm_lang$core$Native_Utils.eq(cell.state, _user$project$Grid$Flagged) ? flag : bomb) : ((_elm_lang$core$Native_Utils.eq(mode, _user$project$GameMode$Lose) && ((!cell.bomb) && _elm_lang$core$Native_Utils.eq(cell.state, _user$project$Grid$Flagged))) ? misflagged : ((_elm_lang$core$Native_Utils.eq(cell.state, _user$project$Grid$Flagged) || (cell.bomb && _elm_lang$core$Native_Utils.eq(mode, _user$project$GameMode$Win))) ? flag : (cell.active ? {ctor: '_Tuple2', _0: 0, _1: -23} : {ctor: '_Tuple2', _0: 0, _1: -39}))));
+		return _user$project$Bitmap$bitmap(pos);
 	});
-var _user$project$Main$Play = {ctor: 'Play'};
-var _user$project$Main$Start = {ctor: 'Start'};
-var _user$project$Main$initialModel = {grid: _user$project$Main$initialGrid, activeCell: _elm_lang$core$Maybe$Nothing, pressingFace: false, bombCount: 40, time: 0, mode: _user$project$Main$Start};
+var _user$project$Bitmap$forFace = function (face) {
+	var pos = function () {
+		var _p1 = face;
+		switch (_p1.ctor) {
+			case 'Smile':
+				return {ctor: '_Tuple2', _0: 0, _1: -55};
+			case 'Pressed':
+				return {ctor: '_Tuple2', _0: -26, _1: -55};
+			case 'Surprised':
+				return {ctor: '_Tuple2', _0: -52, _1: -55};
+			case 'Sad':
+				return {ctor: '_Tuple2', _0: -78, _1: -55};
+			default:
+				return {ctor: '_Tuple2', _0: -104, _1: -55};
+		}
+	}();
+	return _user$project$Bitmap$bitmap(pos);
+};
+var _user$project$Bitmap$forInt = function (n) {
+	var pos = function () {
+		if ((_elm_lang$core$Native_Utils.cmp(n, 0) > -1) && (_elm_lang$core$Native_Utils.cmp(n, 9) < 1)) {
+			var _p2 = n;
+			switch (_p2) {
+				case 0:
+					return {ctor: '_Tuple2', _0: 0, _1: 0};
+				case 1:
+					return {ctor: '_Tuple2', _0: -13, _1: 0};
+				case 2:
+					return {ctor: '_Tuple2', _0: -26, _1: 0};
+				case 3:
+					return {ctor: '_Tuple2', _0: -39, _1: 0};
+				case 4:
+					return {ctor: '_Tuple2', _0: -52, _1: 0};
+				case 5:
+					return {ctor: '_Tuple2', _0: -65, _1: 0};
+				case 6:
+					return {ctor: '_Tuple2', _0: -78, _1: 0};
+				case 7:
+					return {ctor: '_Tuple2', _0: -91, _1: 0};
+				case 8:
+					return {ctor: '_Tuple2', _0: -104, _1: 0};
+				case 9:
+					return {ctor: '_Tuple2', _0: -117, _1: 0};
+				default:
+					return _elm_lang$core$Native_Utils.crashCase(
+						'Bitmap',
+						{
+							start: {line: 14, column: 17},
+							end: {line: 46, column: 39}
+						},
+						_p2)('');
+			}
+		} else {
+			return {ctor: '_Tuple2', _0: 0, _1: 0};
+		}
+	}();
+	return _user$project$Bitmap$bitmap(pos);
+};
+var _user$project$Bitmap$Sunglasses = {ctor: 'Sunglasses'};
+var _user$project$Bitmap$Sad = {ctor: 'Sad'};
+var _user$project$Bitmap$Surprised = {ctor: 'Surprised'};
+var _user$project$Bitmap$Pressed = {ctor: 'Pressed'};
+var _user$project$Bitmap$Smile = {ctor: 'Smile'};
+
+var _user$project$Main$raisedDiv = A2(
+	_user$project$Element$styled,
+	_elm_lang$html$Html$div,
+	{
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'border', _1: '2px solid #7b7b7b'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'border-top-color', _1: '#fff'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'border-left-color', _1: '#fff'},
+				_1: {ctor: '[]'}
+			}
+		}
+	});
+var _user$project$Main$insetDiv = A2(
+	_user$project$Element$styled,
+	_elm_lang$html$Html$div,
+	{
+		ctor: '::',
+		_0: {ctor: '_Tuple2', _0: 'border', _1: '2px solid #7b7b7b'},
+		_1: {
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'border-bottom-color', _1: '#fff'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'border-right-color', _1: '#fff'},
+				_1: {ctor: '[]'}
+			}
+		}
+	});
+var _user$project$Main$buildWhich = F2(
+	function (event, toMsg) {
+		return A2(
+			_elm_lang$html$Html_Events$on,
+			event,
+			A2(
+				_elm_lang$core$Json_Decode$map,
+				toMsg,
+				A2(
+					_elm_lang$core$Json_Decode$at,
+					{
+						ctor: '::',
+						_0: 'which',
+						_1: {ctor: '[]'}
+					},
+					_elm_lang$core$Json_Decode$int)));
+	});
+var _user$project$Main$onWhichMouseUp = _user$project$Main$buildWhich('mouseup');
+var _user$project$Main$onWhichMouseDown = _user$project$Main$buildWhich('mousedown');
+var _user$project$Main$onRightClick = function (message) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'contextmenu',
+		{preventDefault: true, stopPropagation: false},
+		_elm_lang$core$Json_Decode$succeed(message));
+};
+var _user$project$Main$viewDigits = function (n) {
+	var toInt = function (str) {
+		var _p0 = _elm_lang$core$String$toInt(str);
+		if (_p0.ctor === 'Ok') {
+			return _p0._0;
+		} else {
+			return 0;
+		}
+	};
+	var minLen = F2(
+		function (n, str) {
+			minLen:
+			while (true) {
+				if (_elm_lang$core$Native_Utils.cmp(
+					_elm_lang$core$String$length(str),
+					n) < 0) {
+					var _v1 = n,
+						_v2 = A2(_elm_lang$core$Basics_ops['++'], '0', str);
+					n = _v1;
+					str = _v2;
+					continue minLen;
+				} else {
+					return str;
+				}
+			}
+		});
+	var str = A2(
+		minLen,
+		3,
+		_elm_lang$core$Basics$toString(n));
+	var digit = function (el) {
+		return A2(
+			_user$project$Element$styled,
+			el,
+			{
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
+				_1: {
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'width', _1: '13px'},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'height', _1: '23px'},
+						_1: {ctor: '[]'}
+					}
+				}
+			});
+	};
+	var children = A2(
+		_elm_lang$core$List$map,
+		function (_p1) {
+			return function (c) {
+				return A2(
+					c,
+					{ctor: '[]'},
+					{ctor: '[]'});
+			}(
+				digit(
+					_user$project$Bitmap$forInt(
+						toInt(_p1))));
+		},
+		A2(_elm_lang$core$String$split, '', str));
+	var frame = A2(
+		_user$project$Element$styled,
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
+			_1: {
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'background', _1: '#000'},
+				_1: {ctor: '[]'}
+			}
+		});
+	return A2(
+		frame,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$style(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'height', _1: '23px'},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'border', _1: '1px solid'},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'border-color', _1: '#808080 #fff #fff #808080'},
+							_1: {ctor: '[]'}
+						}
+					}
+				}),
+			_1: {ctor: '[]'}
+		},
+		children);
+};
+var _user$project$Main$getDimensions = function (game) {
+	var _p2 = game;
+	switch (_p2.ctor) {
+		case 'Beginner':
+			return {ctor: '_Tuple2', _0: 9, _1: 9};
+		case 'Intermediate':
+			return {ctor: '_Tuple2', _0: 16, _1: 16};
+		case 'Expert':
+			return {ctor: '_Tuple2', _0: 30, _1: 16};
+		default:
+			return {ctor: '_Tuple2', _0: _p2._0, _1: _p2._1};
+	}
+};
+var _user$project$Main$getBombCount = function (game) {
+	var _p3 = game;
+	switch (_p3.ctor) {
+		case 'Beginner':
+			return 10;
+		case 'Intermediate':
+			return 40;
+		case 'Expert':
+			return 99;
+		default:
+			return _p3._2;
+	}
+};
+var _user$project$Main$Model = F7(
+	function (a, b, c, d, e, f, g) {
+		return {grid: a, activeCell: b, pressingFace: c, game: d, time: e, mode: f, isRightClicked: g};
+	});
+var _user$project$Main$Custom = F3(
+	function (a, b, c) {
+		return {ctor: 'Custom', _0: a, _1: b, _2: c};
+	});
+var _user$project$Main$Expert = {ctor: 'Expert'};
+var _user$project$Main$Intermediate = {ctor: 'Intermediate'};
+var _user$project$Main$initialGame = _user$project$Main$Intermediate;
+var _user$project$Main$initialModel = {
+	grid: _user$project$Grid$fromDimensions(
+		_user$project$Main$getDimensions(_user$project$Main$initialGame)),
+	activeCell: _elm_lang$core$Maybe$Nothing,
+	pressingFace: false,
+	game: _user$project$Main$initialGame,
+	time: 0,
+	mode: _user$project$GameMode$Start,
+	isRightClicked: false
+};
+var _user$project$Main$Beginner = {ctor: 'Beginner'};
+var _user$project$Main$ClearActiveCell = {ctor: 'ClearActiveCell'};
 var _user$project$Main$ArmRandomCells = function (a) {
 	return {ctor: 'ArmRandomCells', _0: a};
 };
 var _user$project$Main$generateRandomInts = F2(
 	function (bombCount, grid) {
 		var available = A2(
-			_elm_lang$core$List$filter,
+			_user$project$Grid$filter,
 			function (c) {
-				return (!c.bomb) && (!c.exposed);
+				return (!c.bomb) && (!_elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Exposed));
 			},
-			_user$project$Main$gridToCells(grid));
+			grid);
+		var max = _elm_lang$core$List$length(available) - 1;
 		return A2(
 			_elm_lang$core$Random$generate,
 			_user$project$Main$ArmRandomCells,
 			A2(
 				_elm_lang$core$Random$list,
 				bombCount,
-				A2(
-					_elm_lang$core$Random$int,
-					0,
-					_elm_lang$core$List$length(available) - 1)));
+				A2(_elm_lang$core$Random$int, 0, max)));
 	});
 var _user$project$Main$update = F2(
 	function (msg, model) {
-		var _p15 = msg;
-		switch (_p15.ctor) {
+		var _p4 = msg;
+		switch (_p4.ctor) {
 			case 'MouseUpCell':
-				var _p16 = _p15._0;
+				var _p6 = _p4._1;
+				var _p5 = _p4._0;
+				var bombCount = _user$project$Main$getBombCount(model.game);
+				var isSatisfied = function (cell) {
+					return _elm_lang$core$Native_Utils.cmp(
+						A2(_user$project$Grid$neighborBombCount, cell, model.grid),
+						A2(_user$project$Grid$neighborFlagCount, cell, model.grid)) < 1;
+				};
+				var bothBtnsPressed = (!_elm_lang$core$Native_Utils.eq(model.activeCell, _elm_lang$core$Maybe$Nothing)) && model.isRightClicked;
 				var newGrid = A3(
-					_user$project$Main$updateCell,
+					_user$project$Grid$updateCell,
 					function (cell) {
 						return _elm_lang$core$Native_Utils.update(
 							cell,
-							{exposed: true});
+							{state: _user$project$Grid$Exposed});
 					},
-					_p16,
+					_p6,
 					model.grid);
-				var grid = _elm_lang$core$Native_Utils.eq(model.mode, _user$project$Main$Start) ? newGrid : A2(_user$project$Main$floodCell, _p16, model.grid);
-				var cmd = _elm_lang$core$Native_Utils.eq(model.mode, _user$project$Main$Start) ? A2(_user$project$Main$generateRandomInts, model.bombCount, grid) : _elm_lang$core$Platform_Cmd$none;
+				var grid = _elm_lang$core$Native_Utils.eq(model.mode, _user$project$GameMode$Start) ? newGrid : ((bothBtnsPressed && (_elm_lang$core$Native_Utils.eq(_p6.state, _user$project$Grid$Exposed) && isSatisfied(_p6))) ? A2(_user$project$Grid$exposeNeighbors, _p6, model.grid) : A2(_user$project$Grid$floodCell, _p6, model.grid));
+				var cmd = _elm_lang$core$Native_Utils.eq(model.mode, _user$project$GameMode$Start) ? A2(_user$project$Main$generateRandomInts, bombCount, grid) : _elm_lang$core$Platform_Cmd$none;
 				var newCell = A2(
-					_user$project$Main$findCellAtPair,
-					{ctor: '_Tuple2', _0: _p16.x, _1: _p16.y},
+					_user$project$Grid$findCellAtPair,
+					{ctor: '_Tuple2', _0: _p6.x, _1: _p6.y},
 					newGrid);
-				var cellToCheck = _elm_lang$core$Native_Utils.eq(model.mode, _user$project$Main$Start) ? newCell : _p16;
-				var mode = (_elm_lang$core$Native_Utils.eq(model.mode, _user$project$Main$Start) || _elm_lang$core$Native_Utils.eq(model.mode, _user$project$Main$Play)) ? (cellToCheck.bomb ? _user$project$Main$Lose : (_user$project$Main$hasWon(grid) ? _user$project$Main$Win : _user$project$Main$Play)) : model.mode;
-				return _elm_lang$core$Native_Utils.eq(model.activeCell, _elm_lang$core$Maybe$Nothing) ? {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none} : (_p16.flagged ? {
+				var cellToCheck = _elm_lang$core$Native_Utils.eq(model.mode, _user$project$GameMode$Start) ? newCell : _p6;
+				var exposedBombs = _elm_lang$core$List$length(
+					A2(
+						_user$project$Grid$filter,
+						function (c) {
+							return _elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Exposed) && c.bomb;
+						},
+						grid));
+				var mode = (_elm_lang$core$Native_Utils.eq(model.mode, _user$project$GameMode$Start) || _elm_lang$core$Native_Utils.eq(model.mode, _user$project$GameMode$Play)) ? ((_elm_lang$core$Native_Utils.cmp(exposedBombs, 0) > 0) ? _user$project$GameMode$Lose : (_user$project$Grid$isCleared(grid) ? _user$project$GameMode$Win : _user$project$GameMode$Play)) : model.mode;
+				return (bothBtnsPressed || _elm_lang$core$Native_Utils.eq(_p5, 1)) ? {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{activeCell: _elm_lang$core$Maybe$Nothing}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				} : {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{grid: grid, activeCell: _elm_lang$core$Maybe$Nothing, mode: mode}),
+						{grid: grid, activeCell: _elm_lang$core$Maybe$Nothing, mode: mode, isRightClicked: false}),
 					_1: cmd
-				});
+				} : (_elm_lang$core$Native_Utils.eq(_p5, 3) ? {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{isRightClicked: false}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				} : {ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none});
 			case 'ArmRandomCells':
+				var desiredBombCount = _user$project$Main$getBombCount(model.game);
 				var available = _elm_lang$core$Array$fromList(
 					A2(
-						_elm_lang$core$List$filter,
+						_user$project$Grid$filter,
 						function (c) {
-							return (!c.bomb) && (!c.exposed);
+							return (!c.bomb) && (!_elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Exposed));
 						},
-						_user$project$Main$gridToCells(model.grid)));
+						model.grid));
 				var cellsToArm = A2(
 					_elm_lang$core$List$map,
 					function (index) {
-						var _p17 = A2(_elm_lang$core$Array$get, index, available);
-						if (_p17.ctor === 'Just') {
-							return _p17._0;
+						var _p7 = A2(_elm_lang$core$Array$get, index, available);
+						if (_p7.ctor === 'Just') {
+							return _p7._0;
 						} else {
 							return _elm_lang$core$Native_Utils.crashCase(
 								'Main',
 								{
-									start: {line: 310, column: 29},
-									end: {line: 315, column: 54}
+									start: {line: 200, column: 29},
+									end: {line: 205, column: 54}
 								},
-								_p17)('nah');
+								_p7)('nah');
 						}
 					},
-					_p15._0);
+					_p4._0);
 				var grid = A3(
-					_user$project$Main$updateCells,
+					_user$project$Grid$updateCells,
 					function (c) {
 						return _elm_lang$core$Native_Utils.update(
 							c,
@@ -9882,58 +9918,41 @@ var _user$project$Main$update = F2(
 					cellsToArm,
 					model.grid);
 				var exposedCell = A2(
-					_user$project$Main$findCell,
-					function (_) {
-						return _.exposed;
+					_user$project$Grid$findCell,
+					function (c) {
+						return _elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Exposed);
 					},
 					grid);
-				var bombCount = _elm_lang$core$List$length(
-					A2(
-						_elm_lang$core$List$filter,
-						function (_) {
-							return _.bomb;
-						},
-						_user$project$Main$gridToCells(grid)));
-				return (_elm_lang$core$Native_Utils.cmp(bombCount, model.bombCount) < 0) ? {
+				var bombCount = _user$project$Grid$totalBombs(grid);
+				return (_elm_lang$core$Native_Utils.cmp(bombCount, desiredBombCount) < 0) ? {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{grid: grid}),
-					_1: A2(_user$project$Main$generateRandomInts, model.bombCount - bombCount, grid)
+					_1: A2(_user$project$Main$generateRandomInts, desiredBombCount - bombCount, grid)
 				} : {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							grid: A2(_user$project$Main$floodCell, exposedCell, grid)
+							grid: A2(_user$project$Grid$floodCell, exposedCell, grid)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			case 'PressDown':
+			case 'MouseDownCell':
+				var model_ = _elm_lang$core$Native_Utils.eq(_p4._0, 1) ? _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						activeCell: _elm_lang$core$Maybe$Just(_p4._1)
+					}) : model;
+				return {ctor: '_Tuple2', _0: model_, _1: _elm_lang$core$Platform_Cmd$none};
+			case 'RightClick':
+				var grid = A2(_user$project$Grid$toggleFlag, _p4._0, model.grid);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{
-							activeCell: _elm_lang$core$Maybe$Just(_p15._0)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'ToggleFlag':
-				var grid = A3(
-					_user$project$Main$updateCell,
-					function (c) {
-						return _elm_lang$core$Native_Utils.update(
-							c,
-							{flagged: !c.flagged});
-					},
-					_p15._0,
-					model.grid);
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{grid: grid, activeCell: _elm_lang$core$Maybe$Nothing}),
+						{grid: grid, isRightClicked: true}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'PressingFace':
@@ -9941,7 +9960,7 @@ var _user$project$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{pressingFace: _p15._0}),
+						{pressingFace: _p4._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'ClickFace':
@@ -9949,7 +9968,20 @@ var _user$project$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{grid: _user$project$Main$initialGrid, time: 0, mode: _user$project$Main$Start}),
+						{
+							grid: _user$project$Grid$fromDimensions(
+								_user$project$Main$getDimensions(model.game)),
+							time: 0,
+							mode: _user$project$GameMode$Start
+						}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'TimeSecond':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{time: model.time + 1}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			default:
@@ -9957,7 +9989,7 @@ var _user$project$Main$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{time: model.time + 1}),
+						{activeCell: _elm_lang$core$Maybe$Nothing}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
@@ -9966,8 +9998,8 @@ var _user$project$Main$TimeSecond = function (a) {
 	return {ctor: 'TimeSecond', _0: a};
 };
 var _user$project$Main$subscriptions = function (model) {
-	var _p19 = model.mode;
-	if (_p19.ctor === 'Play') {
+	var _p9 = model.mode;
+	if (_p9.ctor === 'Play') {
 		return A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second, _user$project$Main$TimeSecond);
 	} else {
 		return _elm_lang$core$Platform_Sub$none;
@@ -9977,189 +10009,10 @@ var _user$project$Main$ClickFace = {ctor: 'ClickFace'};
 var _user$project$Main$PressingFace = function (a) {
 	return {ctor: 'PressingFace', _0: a};
 };
-var _user$project$Main$ToggleFlag = function (a) {
-	return {ctor: 'ToggleFlag', _0: a};
-};
-var _user$project$Main$PressDown = function (a) {
-	return {ctor: 'PressDown', _0: a};
-};
-var _user$project$Main$MouseUpCell = function (a) {
-	return {ctor: 'MouseUpCell', _0: a};
-};
-var _user$project$Main$viewCell = F5(
-	function (size, downOnHover, grid, mode, cell) {
-		var isPlayable = _elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Play) || _elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Start);
-		var upDownEvents = isPlayable ? (cell.flagged ? {
-			ctor: '::',
-			_0: _user$project$Main$onRightClick(
-				_user$project$Main$ToggleFlag(cell)),
-			_1: {ctor: '[]'}
-		} : {
-			ctor: '::',
-			_0: _elm_lang$html$Html_Events$onMouseUp(
-				_user$project$Main$MouseUpCell(cell)),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$html$Html_Events$onMouseDown(
-					_user$project$Main$PressDown(cell)),
-				_1: {
-					ctor: '::',
-					_0: _user$project$Main$onRightClick(
-						_user$project$Main$ToggleFlag(cell)),
-					_1: {ctor: '[]'}
-				}
-			}
-		}) : {ctor: '[]'};
-		var hoverEvents = (downOnHover && isPlayable) ? {
-			ctor: '::',
-			_0: _elm_lang$html$Html_Events$onMouseEnter(
-				_user$project$Main$PressDown(cell)),
-			_1: {ctor: '[]'}
-		} : {ctor: '[]'};
-		var count = A2(_user$project$Main$neighborBombCount, cell, grid);
-		var base = A3(_user$project$Main$bitmapForCell, count, mode, cell);
-		var cellDiv = A2(
-			_user$project$Main$styled,
-			base,
-			{
-				ctor: '::',
-				_0: {ctor: '_Tuple2', _0: 'box-sizing', _1: 'border-box'},
-				_1: {
-					ctor: '::',
-					_0: {
-						ctor: '_Tuple2',
-						_0: 'width',
-						_1: _user$project$Main$px(size)
-					},
-					_1: {
-						ctor: '::',
-						_0: {
-							ctor: '_Tuple2',
-							_0: 'height',
-							_1: _user$project$Main$px(size)
-						},
-						_1: {
-							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
-							_1: {
-								ctor: '::',
-								_0: {ctor: '_Tuple2', _0: 'cursor', _1: 'default'},
-								_1: {ctor: '[]'}
-							}
-						}
-					}
-				}
-			});
-		return A2(
-			cellDiv,
-			_elm_lang$core$List$concat(
-				{
-					ctor: '::',
-					_0: upDownEvents,
-					_1: {
-						ctor: '::',
-						_0: hoverEvents,
-						_1: {ctor: '[]'}
-					}
-				}),
-			{ctor: '[]'});
-	});
-var _user$project$Main$viewGrid = F3(
-	function (activeCell, grid, mode) {
-		var hasActive = function (active) {
-			var _p20 = active;
-			if (_p20.ctor === 'Just') {
-				return true;
-			} else {
-				return false;
-			}
-		};
-		var markActive = function (cell) {
-			var _p21 = activeCell;
-			if (_p21.ctor === 'Just') {
-				return (_elm_lang$core$Native_Utils.eq(_p21._0, cell) && ((!cell.exposed) && (!cell.flagged))) ? _elm_lang$core$Native_Utils.update(
-					cell,
-					{active: true}) : cell;
-			} else {
-				return cell;
-			}
-		};
-		var columnHeight = function () {
-			var _p22 = _elm_lang$core$List$head(grid);
-			if (_p22.ctor === 'Just') {
-				return _elm_lang$core$List$length(_p22._0);
-			} else {
-				return 0;
-			}
-		}();
-		var size = 16;
-		var gridWidth = size * _elm_lang$core$List$length(grid);
-		var gridHeight = size * columnHeight;
-		var renderCell = A4(
-			_user$project$Main$viewCell,
-			size,
-			hasActive(activeCell),
-			grid,
-			mode);
-		var viewColumn = function (column) {
-			return A2(
-				_elm_lang$html$Html$div,
-				{
-					ctor: '::',
-					_0: _elm_lang$html$Html_Attributes$style(
-						{
-							ctor: '::',
-							_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				},
-				A2(
-					_elm_lang$core$List$map,
-					function (_p23) {
-						return renderCell(
-							markActive(_p23));
-					},
-					column));
-		};
-		return A2(
-			_user$project$Main$insetDiv,
-			{
-				ctor: '::',
-				_0: _elm_lang$html$Html_Attributes$style(
-					{
-						ctor: '::',
-						_0: {
-							ctor: '_Tuple2',
-							_0: 'width',
-							_1: A2(
-								_elm_lang$core$Basics_ops['++'],
-								_elm_lang$core$Basics$toString(gridWidth),
-								'px')
-						},
-						_1: {
-							ctor: '::',
-							_0: {
-								ctor: '_Tuple2',
-								_0: 'height',
-								_1: _user$project$Main$px(gridHeight)
-							},
-							_1: {ctor: '[]'}
-						}
-					}),
-				_1: {ctor: '[]'}
-			},
-			A2(_elm_lang$core$List$map, viewColumn, grid));
-	});
-var _user$project$Main$Sunglasses = {ctor: 'Sunglasses'};
-var _user$project$Main$Sad = {ctor: 'Sad'};
-var _user$project$Main$Surprised = {ctor: 'Surprised'};
-var _user$project$Main$Pressed = {ctor: 'Pressed'};
-var _user$project$Main$Smile = {ctor: 'Smile'};
 var _user$project$Main$viewHeader = F5(
 	function (pressingFace, hasActiveCell, remainingFlags, time, mode) {
 		var header = A2(
-			_user$project$Main$styled,
+			_user$project$Element$styled,
 			_user$project$Main$insetDiv,
 			{
 				ctor: '::',
@@ -10186,14 +10039,14 @@ var _user$project$Main$viewHeader = F5(
 					}
 				}
 			});
-		var faceDiv = pressingFace ? _user$project$Main$bitmapForFace(_user$project$Main$Pressed) : (_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Lose) ? _user$project$Main$bitmapForFace(_user$project$Main$Sad) : (_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Win) ? _user$project$Main$bitmapForFace(_user$project$Main$Sunglasses) : (hasActiveCell ? _user$project$Main$bitmapForFace(_user$project$Main$Surprised) : _user$project$Main$bitmapForFace(_user$project$Main$Smile))));
+		var faceDiv = pressingFace ? _user$project$Bitmap$forFace(_user$project$Bitmap$Pressed) : (_elm_lang$core$Native_Utils.eq(mode, _user$project$GameMode$Lose) ? _user$project$Bitmap$forFace(_user$project$Bitmap$Sad) : (_elm_lang$core$Native_Utils.eq(mode, _user$project$GameMode$Win) ? _user$project$Bitmap$forFace(_user$project$Bitmap$Sunglasses) : (hasActiveCell ? _user$project$Bitmap$forFace(_user$project$Bitmap$Surprised) : _user$project$Bitmap$forFace(_user$project$Bitmap$Smile))));
 		return A2(
 			header,
 			{ctor: '[]'},
 			{
 				ctor: '::',
 				_0: _user$project$Main$viewDigits(
-					_elm_lang$core$Native_Utils.eq(mode, _user$project$Main$Win) ? 0 : remainingFlags),
+					_elm_lang$core$Native_Utils.eq(mode, _user$project$GameMode$Win) ? 0 : remainingFlags),
 				_1: {
 					ctor: '::',
 					_0: A2(
@@ -10256,24 +10109,223 @@ var _user$project$Main$viewHeader = F5(
 				}
 			});
 	});
+var _user$project$Main$RightClick = function (a) {
+	return {ctor: 'RightClick', _0: a};
+};
+var _user$project$Main$MouseDownCell = F2(
+	function (a, b) {
+		return {ctor: 'MouseDownCell', _0: a, _1: b};
+	});
+var _user$project$Main$MouseUpCell = F2(
+	function (a, b) {
+		return {ctor: 'MouseUpCell', _0: a, _1: b};
+	});
+var _user$project$Main$viewCell = F5(
+	function (size, downOnHover, grid, mode, cell) {
+		var hoverEvents = downOnHover ? {
+			ctor: '::',
+			_0: _elm_lang$html$Html_Events$onMouseEnter(
+				A2(_user$project$Main$MouseDownCell, 1, cell)),
+			_1: {ctor: '[]'}
+		} : {ctor: '[]'};
+		var upDownEvents = {
+			ctor: '::',
+			_0: _user$project$Main$onWhichMouseUp(
+				function (btn) {
+					return A2(_user$project$Main$MouseUpCell, btn, cell);
+				}),
+			_1: {
+				ctor: '::',
+				_0: _user$project$Main$onWhichMouseDown(
+					function (btn) {
+						return A2(_user$project$Main$MouseDownCell, btn, cell);
+					}),
+				_1: {
+					ctor: '::',
+					_0: _user$project$Main$onRightClick(
+						_user$project$Main$RightClick(cell)),
+					_1: {ctor: '[]'}
+				}
+			}
+		};
+		var isPlayable = _elm_lang$core$Native_Utils.eq(mode, _user$project$GameMode$Play) || _elm_lang$core$Native_Utils.eq(mode, _user$project$GameMode$Start);
+		var count = A2(_user$project$Grid$neighborBombCount, cell, grid);
+		var base = A3(_user$project$Bitmap$forCell, count, mode, cell);
+		var cellDiv = A2(
+			_user$project$Element$styled,
+			base,
+			{
+				ctor: '::',
+				_0: {ctor: '_Tuple2', _0: 'box-sizing', _1: 'border-box'},
+				_1: {
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'width',
+						_1: _user$project$Element$px(size)
+					},
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'height',
+							_1: _user$project$Element$px(size)
+						},
+						_1: {
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'overflow', _1: 'hidden'},
+							_1: {
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'cursor', _1: 'default'},
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				}
+			});
+		return A2(
+			cellDiv,
+			isPlayable ? _elm_lang$core$List$concat(
+				{
+					ctor: '::',
+					_0: upDownEvents,
+					_1: {
+						ctor: '::',
+						_0: hoverEvents,
+						_1: {ctor: '[]'}
+					}
+				}) : {ctor: '[]'},
+			{ctor: '[]'});
+	});
+var _user$project$Main$viewGrid = F4(
+	function (activeCell, mode, unexposedNeighbors, grid) {
+		var hasActive = function (active) {
+			var _p10 = active;
+			if (_p10.ctor === 'Just') {
+				return true;
+			} else {
+				return false;
+			}
+		};
+		var markActive = function (cell) {
+			if (A2(_elm_lang$core$List$member, cell, unexposedNeighbors)) {
+				return _elm_lang$core$Native_Utils.update(
+					cell,
+					{active: true});
+			} else {
+				var _p11 = activeCell;
+				if (_p11.ctor === 'Just') {
+					return (_elm_lang$core$Native_Utils.eq(_p11._0, cell) && _elm_lang$core$Native_Utils.eq(cell.state, _user$project$Grid$Initial)) ? _elm_lang$core$Native_Utils.update(
+						cell,
+						{active: true}) : cell;
+				} else {
+					return cell;
+				}
+			}
+		};
+		var columnHeight = function () {
+			var _p12 = _elm_lang$core$List$head(grid);
+			if (_p12.ctor === 'Just') {
+				return _elm_lang$core$List$length(_p12._0);
+			} else {
+				return 0;
+			}
+		}();
+		var size = 16;
+		var gridWidth = size * _elm_lang$core$List$length(grid);
+		var gridHeight = size * columnHeight;
+		var renderCell = A4(
+			_user$project$Main$viewCell,
+			size,
+			hasActive(activeCell),
+			grid,
+			mode);
+		var viewColumn = function (column) {
+			return A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$style(
+						{
+							ctor: '::',
+							_0: {ctor: '_Tuple2', _0: 'display', _1: 'inline-block'},
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				},
+				A2(
+					_elm_lang$core$List$map,
+					function (_p13) {
+						return renderCell(
+							markActive(_p13));
+					},
+					column));
+		};
+		return A2(
+			_user$project$Main$insetDiv,
+			{
+				ctor: '::',
+				_0: _elm_lang$html$Html_Attributes$style(
+					{
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: 'width',
+							_1: A2(
+								_elm_lang$core$Basics_ops['++'],
+								_elm_lang$core$Basics$toString(gridWidth),
+								'px')
+						},
+						_1: {
+							ctor: '::',
+							_0: {
+								ctor: '_Tuple2',
+								_0: 'height',
+								_1: _user$project$Element$px(gridHeight)
+							},
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: _elm_lang$html$Html_Events$onMouseLeave(_user$project$Main$ClearActiveCell),
+					_1: {ctor: '[]'}
+				}
+			},
+			A2(_elm_lang$core$List$map, viewColumn, grid));
+	});
 var _user$project$Main$view = function (model) {
+	var unexposedNeighbors = function () {
+		var _p14 = model.activeCell;
+		if (_p14.ctor === 'Just') {
+			var _p15 = _p14._0;
+			return (model.isRightClicked && _elm_lang$core$Native_Utils.eq(_p15.state, _user$project$Grid$Exposed)) ? A2(
+				_elm_lang$core$List$filter,
+				function (c) {
+					return _elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Initial);
+				},
+				A2(_user$project$Grid$getNeighbors, _p15, model.grid)) : {ctor: '[]'};
+		} else {
+			return {ctor: '[]'};
+		}
+	}();
 	var flaggedCount = _elm_lang$core$List$length(
 		A2(
-			_elm_lang$core$List$filter,
-			function (_) {
-				return _.flagged;
+			_user$project$Grid$filter,
+			function (c) {
+				return _elm_lang$core$Native_Utils.eq(c.state, _user$project$Grid$Flagged);
 			},
-			_user$project$Main$gridToCells(model.grid)));
+			model.grid));
 	var hasActiveCell = function () {
-		var _p24 = model.activeCell;
-		if (_p24.ctor === 'Just') {
+		var _p16 = model.activeCell;
+		if (_p16.ctor === 'Just') {
 			return true;
 		} else {
 			return false;
 		}
 	}();
 	var frame = A2(
-		_user$project$Main$styled,
+		_user$project$Element$styled,
 		_user$project$Main$raisedDiv,
 		{
 			ctor: '::',
@@ -10301,7 +10353,7 @@ var _user$project$Main$view = function (model) {
 			}
 		});
 	var background = A2(
-		_user$project$Main$styled,
+		_user$project$Element$styled,
 		_elm_lang$html$Html$div,
 		{
 			ctor: '::',
@@ -10334,10 +10386,16 @@ var _user$project$Main$view = function (model) {
 				{ctor: '[]'},
 				{
 					ctor: '::',
-					_0: A5(_user$project$Main$viewHeader, model.pressingFace, hasActiveCell, model.bombCount - flaggedCount, model.time, model.mode),
+					_0: A5(
+						_user$project$Main$viewHeader,
+						model.pressingFace,
+						hasActiveCell,
+						_user$project$Main$getBombCount(model.game) - flaggedCount,
+						model.time,
+						model.mode),
 					_1: {
 						ctor: '::',
-						_0: A3(_user$project$Main$viewGrid, model.activeCell, model.grid, model.mode),
+						_0: A4(_user$project$Main$viewGrid, model.activeCell, model.mode, unexposedNeighbors, model.grid),
 						_1: {ctor: '[]'}
 					}
 				}),
