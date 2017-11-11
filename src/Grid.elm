@@ -108,30 +108,7 @@ findMatching default match list =
 
 updateCells : (Cell -> Cell) -> List Cell -> Grid -> Grid
 updateCells update cells grid =
-    let
-        head =
-            case List.head cells of
-                Just cell ->
-                    cell
-
-                Nothing ->
-                    Cell -1 -1 Initial False False
-
-        tail =
-            case List.tail cells of
-                Just cells ->
-                    cells
-
-                Nothing ->
-                    []
-
-        newGrid =
-            updateCell update head grid
-    in
-    if List.length cells > 0 then
-        updateCells update tail newGrid
-    else
-        newGrid
+    List.foldl (updateCell update) grid cells
 
 
 updateCell : (Cell -> Cell) -> Cell -> Grid -> Grid
@@ -150,9 +127,31 @@ updateCell update cell grid =
     grid |> List.map replaceCell
 
 
+toggleFlag : Cell -> Grid -> Grid
+toggleFlag cell grid =
+    let
+        state =
+            if cell.state == Exposed then
+                Exposed
+            else if cell.state == Flagged then
+                Initial
+            else
+                Flagged
+    in
+    updateCell
+        (\c -> { c | state = state })
+        cell
+        grid
+
+
 neighborBombCount : Cell -> Grid -> Int
 neighborBombCount cell grid =
     List.length <| List.filter .bomb <| getNeighbors cell grid
+
+
+neighborFlagCount : Cell -> Grid -> Int
+neighborFlagCount cell grid =
+    List.length <| List.filter (\c -> c.state == Flagged) <| getNeighbors cell grid
 
 
 getNeighbors : Cell -> Grid -> List Cell
@@ -184,39 +183,41 @@ floodCell cell grid =
 
 
 floodCells : List Cell -> Grid -> Grid
-floodCells toExpose grid =
+floodCells cells grid =
     let
-        cell =
-            case List.head toExpose of
-                Just cell ->
-                    cell
-
-                Nothing ->
-                    Debug.crash ""
-
-        tail =
-            toExpose |> List.filter (\c -> not (c.x == cell.x && c.y == cell.y))
+        expose : Cell -> Grid -> Grid
+        expose =
+            updateCell (\c -> { c | state = Exposed })
 
         newGrid =
-            updateCell
-                (\cell -> { cell | state = Exposed })
-                cell
-                grid
+            List.foldl expose grid cells
 
         additional =
-            if neighborBombCount cell grid == 0 then
-                getNeighbors cell grid
-                    |> List.filter (\c -> not c.bomb && c.state == Initial)
-            else
-                []
-
-        moreToExpose =
-            List.concat [ tail, additional ]
+            cells
+                |> List.map
+                    (\cell ->
+                        if neighborBombCount cell newGrid == 0 then
+                            getNeighbors cell newGrid
+                                |> List.filter (\c -> not c.bomb && c.state == Initial)
+                        else
+                            []
+                    )
+                |> List.concat
     in
-    if List.length moreToExpose > 0 then
-        floodCells moreToExpose newGrid
+    if List.length additional > 0 then
+        floodCells additional newGrid
     else
         newGrid
+
+
+exposeNeighbors : Cell -> Grid -> Grid
+exposeNeighbors cell grid =
+    let
+        neighbors =
+            getNeighbors cell grid
+                |> List.filter (\c -> c.state == Initial)
+    in
+    floodCells neighbors grid
 
 
 dreamboard : List ( Int, Int )

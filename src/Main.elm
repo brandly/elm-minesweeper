@@ -5,7 +5,7 @@ import Bitmap as Bitmap exposing (Face(..))
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(Exposed, Flagged, Initial), Column, Grid)
-import Html exposing (Html, div)
+import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseOut, onMouseUp, onWithOptions)
 import Json.Decode as Json
@@ -30,6 +30,7 @@ type alias Model =
     , game : Game
     , time : Int
     , mode : GameMode
+    , isRightClicked : Bool
     }
 
 
@@ -85,13 +86,14 @@ initialModel =
     , game = initialGame
     , time = 0
     , mode = Start
+    , isRightClicked = False
     }
 
 
 type Msg
-    = MouseUpCell Cell
-    | PressDown Cell
-    | ToggleFlag Cell
+    = MouseUpCell Int Cell
+    | MouseDownCell Int Cell
+    | RightClick Cell
     | PressingFace Bool
     | ClickFace
     | TimeSecond Time
@@ -115,11 +117,14 @@ generateRandomInts bombCount grid =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        MouseUpCell cell ->
+        MouseUpCell btn cell ->
             let
+                exposedBombs =
+                    List.length <| Grid.filter (\c -> c.state == Exposed && c.bomb) grid
+
                 mode =
                     if model.mode == Start || model.mode == Play then
-                        if cellToCheck.bomb then
+                        if exposedBombs > 0 then
                             Lose
                         else if Grid.isCleared grid then
                             Win
@@ -143,9 +148,17 @@ update msg model =
                         cell
                         model.grid
 
+                bothBtnsPressed =
+                    model.activeCell /= Nothing && model.isRightClicked
+
+                isSatisfied cell =
+                    Grid.neighborBombCount cell model.grid <= Grid.neighborFlagCount cell model.grid
+
                 grid =
                     if model.mode == Start then
                         newGrid
+                    else if bothBtnsPressed && cell.state == Exposed && isSatisfied cell then
+                        Grid.exposeNeighbors cell model.grid
                     else
                         Grid.floodCell cell model.grid
 
@@ -158,18 +171,19 @@ update msg model =
                     else
                         Cmd.none
             in
-            if model.activeCell == Nothing then
-                ( model, Cmd.none )
-            else if cell.state == Flagged then
-                ( { model | activeCell = Nothing }, Cmd.none )
-            else
+            if bothBtnsPressed || btn == 1 then
                 ( { model
                     | grid = grid
                     , activeCell = Nothing
                     , mode = mode
+                    , isRightClicked = False
                   }
                 , cmd
                 )
+            else if btn == 3 then
+                ( { model | isRightClicked = False }, Cmd.none )
+            else
+                ( model, Cmd.none )
 
         ArmRandomCells randoms ->
             let
@@ -211,29 +225,22 @@ update msg model =
             else
                 ( { model | grid = Grid.floodCell exposedCell grid }, Cmd.none )
 
-        PressDown cell ->
-            ( { model | activeCell = Just cell }, Cmd.none )
+        MouseDownCell btn cell ->
+            let
+                model_ =
+                    if btn == 1 then
+                        { model | activeCell = Just cell }
+                    else
+                        model
+            in
+            ( model_, Cmd.none )
 
-        ToggleFlag cell ->
+        RightClick cell ->
             let
                 grid =
-                    Grid.updateCell
-                        (\c ->
-                            { c
-                                | state =
-                                    if cell.state == Flagged then
-                                        Initial
-                                    else
-                                        Flagged
-                            }
-                        )
-                        cell
-                        model.grid
+                    Grid.toggleFlag cell model.grid
             in
-            if cell.state == Exposed then
-                ( model, Cmd.none )
-            else
-                ( { model | grid = grid, activeCell = Nothing }, Cmd.none )
+            ( { model | grid = grid, isRightClicked = True }, Cmd.none )
 
         PressingFace val ->
             ( { model | pressingFace = val }, Cmd.none )
@@ -290,13 +297,24 @@ view model =
             model.grid
                 |> Grid.filter (\c -> c.state == Flagged)
                 |> List.length
+
+        unexposedNeighbors =
+            case model.activeCell of
+                Just cell ->
+                    if model.isRightClicked && cell.state == Exposed then
+                        Grid.getNeighbors cell model.grid |> List.filter (\c -> c.state == Initial)
+                    else
+                        []
+
+                Nothing ->
+                    []
     in
     background
         []
         [ frame
             []
             [ viewHeader model.pressingFace hasActiveCell (getBombCount model.game - flaggedCount) model.time model.mode
-            , viewGrid model.activeCell model.grid model.mode
+            , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
             ]
         ]
 
@@ -398,8 +416,8 @@ viewDigits n =
         children
 
 
-viewGrid : Maybe Cell -> Grid -> GameMode -> Html Msg
-viewGrid activeCell grid mode =
+viewGrid : Maybe Cell -> GameMode -> List Cell -> Grid -> Html Msg
+viewGrid activeCell mode unexposedNeighbors grid =
     let
         size =
             16
@@ -420,15 +438,18 @@ viewGrid activeCell grid mode =
 
         markActive : Cell -> Cell
         markActive cell =
-            case activeCell of
-                Just active ->
-                    if active == cell && cell.state == Initial then
-                        { cell | active = True }
-                    else
-                        cell
+            if List.member cell unexposedNeighbors then
+                { cell | active = True }
+            else
+                case activeCell of
+                    Just active ->
+                        if active == cell && cell.state == Initial then
+                            { cell | active = True }
+                        else
+                            cell
 
-                Nothing ->
-                    cell
+                    Nothing ->
+                        cell
 
         hasActive : Maybe Cell -> Bool
         hasActive active =
@@ -481,25 +502,23 @@ viewCell size downOnHover grid mode cell =
             mode == Play || mode == Start
 
         upDownEvents =
-            if isPlayable then
-                if cell.state == Flagged then
-                    [ onRightClick (ToggleFlag cell) ]
-                else
-                    [ onMouseUp (MouseUpCell cell)
-                    , onMouseDown (PressDown cell)
-                    , onRightClick (ToggleFlag cell)
-                    ]
-            else
-                []
+            [ onWhichMouseUp (\btn -> MouseUpCell btn cell)
+            , onWhichMouseDown (\btn -> MouseDownCell btn cell)
+            , onRightClick (RightClick cell)
+            ]
 
         hoverEvents =
-            if downOnHover && isPlayable then
-                [ onMouseEnter (PressDown cell) ]
+            if downOnHover then
+                [ onMouseEnter (MouseDownCell 1 cell) ]
             else
                 []
     in
     cellDiv
-        (List.concat [ upDownEvents, hoverEvents ])
+        (if isPlayable then
+            List.concat [ upDownEvents, hoverEvents ]
+         else
+            []
+        )
         []
 
 
@@ -508,6 +527,22 @@ onRightClick message =
     onWithOptions "contextmenu"
         { preventDefault = True, stopPropagation = False }
         (Json.succeed message)
+
+
+buildWhich : String -> (Int -> msg) -> Html.Attribute msg
+buildWhich event toMsg =
+    Html.Events.on event
+        (Json.map toMsg (Json.at [ "which" ] Json.int))
+
+
+onWhichMouseUp : (Int -> msg) -> Html.Attribute msg
+onWhichMouseUp =
+    buildWhich "mouseup"
+
+
+onWhichMouseDown : (Int -> msg) -> Html.Attribute msg
+onWhichMouseDown =
+    buildWhich "mousedown"
 
 
 insetDiv : Element msg
