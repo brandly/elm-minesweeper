@@ -7,7 +7,7 @@ import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(Exposed, Flagged, Initial), Column, Grid)
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
-import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseOut, onMouseUp, onWithOptions)
+import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp, onWithOptions)
 import Json.Decode as Json
 import Random exposing (Seed)
 import Time exposing (Time, second)
@@ -98,6 +98,7 @@ type Msg
     | ClickFace
     | TimeSecond Time
     | ArmRandomCells (List Int)
+    | ClearActiveCell
 
 
 generateRandomInts : Int -> Grid -> Cmd Msg
@@ -250,6 +251,9 @@ update msg model =
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
+
+        ClearActiveCell ->
+            ( { model | activeCell = Nothing }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -476,6 +480,7 @@ viewGrid activeCell mode unexposedNeighbors grid =
             [ ( "width", toString gridWidth ++ "px" )
             , ( "height", px gridHeight )
             ]
+        , onMouseLeave ClearActiveCell
         ]
         (grid |> List.map viewColumn)
 
