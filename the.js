@@ -9869,13 +9869,20 @@ var _user$project$Main$update = F2(
 						},
 						grid));
 				var mode = (_elm_lang$core$Native_Utils.eq(model.mode, _user$project$GameMode$Start) || _elm_lang$core$Native_Utils.eq(model.mode, _user$project$GameMode$Play)) ? ((_elm_lang$core$Native_Utils.cmp(exposedBombs, 0) > 0) ? _user$project$GameMode$Lose : (_user$project$Grid$isCleared(grid) ? _user$project$GameMode$Win : _user$project$GameMode$Play)) : model.mode;
-				return (bothBtnsPressed || _elm_lang$core$Native_Utils.eq(_p5, 1)) ? {
+				var leftClickResult = _elm_lang$core$Native_Utils.eq(_p6.state, _user$project$Grid$Flagged) ? {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{activeCell: _elm_lang$core$Maybe$Nothing, isRightClicked: false}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				} : {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{grid: grid, activeCell: _elm_lang$core$Maybe$Nothing, mode: mode, isRightClicked: false}),
 					_1: cmd
-				} : (_elm_lang$core$Native_Utils.eq(_p5, 3) ? {
+				};
+				return (bothBtnsPressed || _elm_lang$core$Native_Utils.eq(_p5, 1)) ? leftClickResult : (_elm_lang$core$Native_Utils.eq(_p5, 3) ? {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
@@ -9901,8 +9908,8 @@ var _user$project$Main$update = F2(
 							return _elm_lang$core$Native_Utils.crashCase(
 								'Main',
 								{
-									start: {line: 200, column: 29},
-									end: {line: 205, column: 54}
+									start: {line: 206, column: 29},
+									end: {line: 211, column: 54}
 								},
 								_p7)('nah');
 						}
