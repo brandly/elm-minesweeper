@@ -171,16 +171,22 @@ update msg model =
                         generateRandomInts bombCount grid
                     else
                         Cmd.none
+
+                leftClickResult =
+                    if cell.state == Flagged then
+                        ( { model | activeCell = Nothing, isRightClicked = False }, Cmd.none )
+                    else
+                        ( { model
+                            | grid = grid
+                            , activeCell = Nothing
+                            , mode = mode
+                            , isRightClicked = False
+                          }
+                        , cmd
+                        )
             in
             if bothBtnsPressed || btn == 1 then
-                ( { model
-                    | grid = grid
-                    , activeCell = Nothing
-                    , mode = mode
-                    , isRightClicked = False
-                  }
-                , cmd
-                )
+                leftClickResult
             else if btn == 3 then
                 ( { model | isRightClicked = False }, Cmd.none )
             else
