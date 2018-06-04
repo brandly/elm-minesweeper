@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Array
+import Array exposing (Array)
 import Bitmap as Bitmap exposing (Face(..))
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
@@ -120,60 +120,56 @@ update msg model =
     case msg of
         MouseUpCell btn cell ->
             let
+                exposedBombs : Int
                 exposedBombs =
                     List.length <| Grid.filter (\c -> c.state == Exposed && c.bomb) grid
 
-                mode =
-                    if model.mode == Start || model.mode == Play then
-                        if exposedBombs > 0 then
-                            Lose
-                        else if Grid.isCleared grid then
-                            Win
-                        else
-                            Play
-                    else
-                        model.mode
-
-                newGrid =
-                    Grid.updateCell
-                        (\cell -> { cell | state = Exposed })
-                        cell
-                        model.grid
-
+                bothBtnsPressed : Bool
                 bothBtnsPressed =
                     model.activeCell /= Nothing && model.isRightClicked
 
+                isSatisfied : Cell -> Bool
                 isSatisfied cell =
                     Grid.neighborBombCount cell model.grid <= Grid.neighborFlagCount cell model.grid
 
+                grid : Grid
                 grid =
                     if model.mode == Start then
-                        newGrid
+                        Grid.updateCell
+                            (\cell -> { cell | state = Exposed })
+                            cell
+                            model.grid
                     else if bothBtnsPressed && cell.state == Exposed && isSatisfied cell then
                         Grid.exposeNeighbors cell model.grid
                     else
                         Grid.floodCell cell model.grid
 
-                bombCount =
-                    getBombCount model.game
-
-                cmd =
-                    if model.mode == Start then
-                        generateRandomInts bombCount grid
-                    else
-                        Cmd.none
-
+                leftClickResult : ( Model, Cmd Msg )
                 leftClickResult =
                     if cell.state == Flagged then
-                        ( { model | activeCell = Nothing, isRightClicked = False }, Cmd.none )
+                        ( { model | activeCell = Nothing, isRightClicked = False }
+                        , Cmd.none
+                        )
                     else
                         ( { model
                             | grid = grid
                             , activeCell = Nothing
-                            , mode = mode
+                            , mode =
+                                if model.mode == Start || model.mode == Play then
+                                    if exposedBombs > 0 then
+                                        Lose
+                                    else if Grid.isCleared grid then
+                                        Win
+                                    else
+                                        Play
+                                else
+                                    model.mode
                             , isRightClicked = False
                           }
-                        , cmd
+                        , if model.mode == Start then
+                            generateRandomInts (getBombCount model.game) grid
+                          else
+                            Cmd.none
                         )
             in
                 if bothBtnsPressed || btn == 1 then
@@ -185,6 +181,7 @@ update msg model =
 
         ArmRandomCells randoms ->
             let
+                available : Array Cell
                 available =
                     model.grid
                         |> Grid.filter (\c -> not c.bomb && c.state /= Exposed)
