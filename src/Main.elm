@@ -27,23 +27,23 @@ type alias Model =
     { grid : Grid
     , activeCell : Maybe Cell
     , pressingFace : Bool
-    , game : Game
+    , game : Difficulty
     , time : Int
     , mode : GameMode
     , isRightClicked : Bool
     }
 
 
-type Game
+type Difficulty
     = Beginner
     | Intermediate
     | Expert
     | Custom Int Int Int
 
 
-getBombCount : Game -> Int
-getBombCount game =
-    case game of
+getBombCount : Difficulty -> Int
+getBombCount difficulty =
+    case difficulty of
         Beginner ->
             10
 
@@ -57,9 +57,9 @@ getBombCount game =
             count
 
 
-getDimensions : Game -> ( Int, Int )
-getDimensions game =
-    case game of
+getDimensions : Difficulty -> ( Int, Int )
+getDimensions difficulty =
+    case difficulty of
         Beginner ->
             ( 9, 9 )
 
@@ -73,17 +73,17 @@ getDimensions game =
             ( x, y )
 
 
-initialGame : Game
-initialGame =
+initialDifficulty : Difficulty
+initialDifficulty =
     Intermediate
 
 
 initialModel : Model
 initialModel =
-    { grid = Grid.fromDimensions (getDimensions initialGame)
+    { grid = Grid.fromDimensions (getDimensions initialDifficulty)
     , activeCell = Nothing
     , pressingFace = False
-    , game = initialGame
+    , game = initialDifficulty
     , time = 0
     , mode = Start
     , isRightClicked = False
@@ -110,9 +110,9 @@ generateRandomInts bombCount grid =
         max =
             List.length available - 1
     in
-    Random.generate ArmRandomCells <|
-        Random.list bombCount <|
-            Random.int 0 max
+        Random.generate ArmRandomCells <|
+            Random.list bombCount <|
+                Random.int 0 max
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -185,12 +185,12 @@ update msg model =
                         , cmd
                         )
             in
-            if bothBtnsPressed || btn == 1 then
-                leftClickResult
-            else if btn == 3 then
-                ( { model | isRightClicked = False }, Cmd.none )
-            else
-                ( model, Cmd.none )
+                if bothBtnsPressed || btn == 1 then
+                    leftClickResult
+                else if btn == 3 then
+                    ( { model | isRightClicked = False }, Cmd.none )
+                else
+                    ( model, Cmd.none )
 
         ArmRandomCells randoms ->
             let
@@ -227,10 +227,10 @@ update msg model =
                 desiredBombCount =
                     getBombCount model.game
             in
-            if bombCount < desiredBombCount then
-                ( { model | grid = grid }, generateRandomInts (desiredBombCount - bombCount) grid )
-            else
-                ( { model | grid = Grid.floodCell exposedCell grid }, Cmd.none )
+                if bombCount < desiredBombCount then
+                    ( { model | grid = grid }, generateRandomInts (desiredBombCount - bombCount) grid )
+                else
+                    ( { model | grid = Grid.floodCell exposedCell grid }, Cmd.none )
 
         MouseDownCell btn cell ->
             let
@@ -240,14 +240,14 @@ update msg model =
                     else
                         model
             in
-            ( model_, Cmd.none )
+                ( model_, Cmd.none )
 
         RightClick cell ->
             let
                 grid =
                     Grid.toggleFlag cell model.grid
             in
-            ( { model | grid = grid, isRightClicked = True }, Cmd.none )
+                ( { model | grid = grid, isRightClicked = True }, Cmd.none )
 
         PressingFace val ->
             ( { model | pressingFace = val }, Cmd.none )
@@ -319,14 +319,14 @@ view model =
                 Nothing ->
                     []
     in
-    background
-        []
-        [ frame
+        background
             []
-            [ viewHeader model.pressingFace hasActiveCell (getBombCount model.game - flaggedCount) model.time model.mode
-            , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
+            [ frame
+                []
+                [ viewHeader model.pressingFace hasActiveCell (getBombCount model.game - flaggedCount) model.time model.mode
+                , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
+                ]
             ]
-        ]
 
 
 viewHeader : Bool -> Bool -> Int -> Int -> GameMode -> Html Msg
@@ -355,31 +355,31 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
                 , ( "padding", "0 6px" )
                 ]
     in
-    header
-        []
-        [ viewDigits
-            (if mode == Win then
-                0
-             else
-                remainingFlags
-            )
-        , faceDiv
-            [ style
-                [ ( "display", "flex" )
-                , ( "align-items", "center" )
-                , ( "justify-content", "center" )
-                , ( "width", "26px" )
-                , ( "height", "26px" )
-                , ( "cursor", "default" )
-                ]
-            , onClick ClickFace
-            , onMouseDown (PressingFace True)
-            , onMouseUp (PressingFace False)
-            , onMouseOut (PressingFace False)
-            ]
+        header
             []
-        , viewDigits time
-        ]
+            [ viewDigits
+                (if mode == Win then
+                    0
+                 else
+                    remainingFlags
+                )
+            , faceDiv
+                [ style
+                    [ ( "display", "flex" )
+                    , ( "align-items", "center" )
+                    , ( "justify-content", "center" )
+                    , ( "width", "26px" )
+                    , ( "height", "26px" )
+                    , ( "cursor", "default" )
+                    ]
+                , onClick ClickFace
+                , onMouseDown (PressingFace True)
+                , onMouseUp (PressingFace False)
+                , onMouseOut (PressingFace False)
+                ]
+                []
+            , viewDigits time
+            ]
 
 
 viewDigits : Int -> Html Msg
@@ -416,14 +416,14 @@ viewDigits n =
             String.split "" str
                 |> List.map (toInt >> Bitmap.forInt >> digit >> (\c -> c [] []))
     in
-    frame
-        [ style
-            [ ( "height", "23px" )
-            , ( "border", "1px solid" )
-            , ( "border-color", "#808080 #fff #fff #808080" )
+        frame
+            [ style
+                [ ( "height", "23px" )
+                , ( "border", "1px solid" )
+                , ( "border-color", "#808080 #fff #fff #808080" )
+                ]
             ]
-        ]
-        children
+            children
 
 
 viewGrid : Maybe Cell -> GameMode -> List Cell -> Grid -> Html Msg
@@ -481,14 +481,14 @@ viewGrid activeCell mode unexposedNeighbors grid =
                 ]
                 (column |> List.map (markActive >> renderCell))
     in
-    insetDiv
-        [ style
-            [ ( "width", toString gridWidth ++ "px" )
-            , ( "height", px gridHeight )
+        insetDiv
+            [ style
+                [ ( "width", px gridWidth )
+                , ( "height", px gridHeight )
+                ]
+            , onMouseLeave ClearActiveCell
             ]
-        , onMouseLeave ClearActiveCell
-        ]
-        (grid |> List.map viewColumn)
+            (grid |> List.map viewColumn)
 
 
 viewCell : Int -> Bool -> Grid -> GameMode -> Cell -> Html Msg
@@ -524,13 +524,13 @@ viewCell size downOnHover grid mode cell =
             else
                 []
     in
-    cellDiv
-        (if isPlayable then
-            List.concat [ upDownEvents, hoverEvents ]
-         else
+        cellDiv
+            (if isPlayable then
+                List.concat [ upDownEvents, hoverEvents ]
+             else
+                []
+            )
             []
-        )
-        []
 
 
 onRightClick : msg -> Html.Attribute msg
