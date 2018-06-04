@@ -134,15 +134,6 @@ update msg model =
                     else
                         model.mode
 
-                cellToCheck =
-                    if model.mode == Start then
-                        newCell
-                    else
-                        cell
-
-                newCell =
-                    Grid.findCellAtPair ( cell.x, cell.y ) newGrid
-
                 newGrid =
                     Grid.updateCell
                         (\cell -> { cell | state = Exposed })
