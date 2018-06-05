@@ -417,20 +417,21 @@ viewDigits n =
 viewGrid : Maybe Cell -> GameMode -> List Cell -> Grid -> Html Msg
 viewGrid activeCell mode unexposedNeighbors grid =
     let
+        size : Int
         size =
             16
 
+        gridWidth : Int
         gridWidth =
             size * List.length grid
 
+        columnHeight : Int
         columnHeight =
-            case List.head grid of
-                Just column ->
-                    List.length column
+            List.head grid
+                |> Maybe.map List.length
+                |> Maybe.withDefault 0
 
-                Nothing ->
-                    0
-
+        gridHeight : Int
         gridHeight =
             size * columnHeight
 
@@ -458,6 +459,7 @@ viewGrid activeCell mode unexposedNeighbors grid =
                 Nothing ->
                     False
 
+        renderCell : Cell -> Html Msg
         renderCell =
             viewCell size (hasActive activeCell) grid mode
 
