@@ -4,13 +4,13 @@ import Array exposing (Array)
 import Bitmap as Bitmap exposing (Face(..))
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
-import Grid exposing (Cell, CellState(Exposed, Flagged, Initial), Column, Grid)
+import Grid exposing (Cell, CellState(..), Column, Grid)
 import Html exposing (Html, div, p, text)
 import Html.Attributes exposing (style)
-import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp, onWithOptions)
+import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp, custom)
 import Json.Decode as Json
 import Random exposing (Seed)
-import Time exposing (Time, second)
+import Time exposing (Posix, toSecond)
 
 
 main : Program Never Model Msg
@@ -96,7 +96,7 @@ type Msg
     | RightClick Cell
     | PressingFace Bool
     | ClickFace
-    | TimeSecond Time
+    | TimeSecond Time.Posix
     | ArmRandomCells (List Int)
     | ClearActiveCell
 
@@ -196,7 +196,7 @@ update msg model =
                                     cell
 
                                 Nothing ->
-                                    Debug.crash "nah"
+                                    Debug.log "nah"
                         )
                         randoms
 
@@ -254,7 +254,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.mode of
         Play ->
-            Time.every Time.second TimeSecond
+            Time.every Time.toSecond TimeSecond
 
         _ ->
             Sub.none
@@ -525,7 +525,7 @@ viewCell size downOnHover grid mode cell =
 
 onRightClick : msg -> Html.Attribute msg
 onRightClick message =
-    onWithOptions "contextmenu"
+    custom "contextmenu"
         { preventDefault = True, stopPropagation = False }
         (Json.succeed message)
 

@@ -41,16 +41,16 @@ withBombPairs pairs grid =
     let
         head =
             case List.head pairs of
-                Just head ->
-                    head
+                Just firstElement ->
+                    firstElement
 
                 Nothing ->
                     ( -1, -1 )
 
         tail =
             case List.tail pairs of
-                Just tail ->
-                    tail
+                Just lastElement ->
+                    lastElement
 
                 Nothing ->
                     []
@@ -74,8 +74,8 @@ gridToCells grid =
 
 
 filter : (Cell -> Bool) -> Grid -> List Cell
-filter filter grid =
-    gridToCells grid |> List.filter filter
+filter filterVariable grid =
+    gridToCells grid |> List.filter filterVariable
 
 
 findCell : (Cell -> Bool) -> Grid -> Cell

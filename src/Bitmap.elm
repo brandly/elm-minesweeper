@@ -2,7 +2,7 @@ module Bitmap exposing (..)
 
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode)
-import Grid exposing (Cell, CellState(Exposed, Flagged))
+import Grid exposing (Cell, CellState(..))
 import Html exposing (div)
 
 
@@ -43,7 +43,7 @@ forInt n =
                         ( -117, 0 )
 
                     _ ->
-                        Debug.crash ""
+                        Debug.todo "Oops! Something went wrong. Don't worry, a team of (one) highly trained monkey will is trying to work out what went wrong."
             else
                 ( 0, 0 )
     in

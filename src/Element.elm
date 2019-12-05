@@ -2,6 +2,8 @@ module Element exposing (..)
 
 import Html exposing (Attribute, Html)
 import Html.Attributes exposing (style)
+import Debug exposing (toString)
+
 
 
 type alias Element msg =
@@ -11,7 +13,7 @@ type alias Element msg =
 styled : Element msg -> List ( String, String ) -> Element msg
 styled el css =
     \attrs children ->
-        el ([ style css ] ++ attrs) children
+        el (List.map (\( k, v ) -> style k v) css ++ attrs) children
 
 
 px : Int -> String
