@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Browser exposing (..)
 import Array exposing (Array)
 import Bitmap as Bitmap exposing (Face(..))
 import Element exposing (Element, px, styled)
@@ -15,7 +16,7 @@ import Time exposing (Posix, toSecond)
 
 main : Program Never Model Msg
 main =
-    Html.program
+    Browser.element
         { init = ( initialModel, Cmd.none )
         , update = update
         , view = view
