@@ -129,14 +129,14 @@ update msg model =
                     model.activeCell /= Nothing && model.isRightClicked
 
                 isSatisfied : Cell -> Bool
-                isSatisfied cell =
-                    Grid.neighborBombCount cell model.grid <= Grid.neighborFlagCount cell model.grid
+                isSatisfied cell_square =
+                    Grid.neighborBombCount cell_square model.grid <= Grid.neighborFlagCount cell_square model.grid
 
                 grid : Grid
                 grid =
                     if model.mode == Start then
                         Grid.updateCell
-                            (\cell -> { cell | state = Exposed })
+                            (\cell_square -> { cell_square | state = Exposed })
                             cell
                             model.grid
                     else if bothBtnsPressed && cell.state == Exposed && isSatisfied cell then
@@ -383,17 +383,17 @@ viewDigits n =
                 , ( "height", "23px" )
                 ]
 
-        minLen n str =
-            if String.length str < n then
-                minLen n ("0" ++ str)
+        minLen i string =
+            if String.length string < i then
+                minLen i ("0" ++ string)
             else
-                str
+                string
 
         str =
-            minLen 3 (toString n)
+            minLen 3 (Debug.toString n)
 
-        toInt str =
-            case String.toInt str of
+        toInt string =
+            case String.toInt string of
                 Ok num ->
                     num
 
