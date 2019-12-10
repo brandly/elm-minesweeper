@@ -407,9 +407,9 @@ viewDigits n =
     in
         frame
             [ style
-                [ ( "height", "23px" )
-                , ( "border", "1px solid" )
-                , ( "border-color", "#808080 #fff #fff #808080" )
+                [ ( "height" "23px" )
+                , ( "border" "1px solid" )
+                , ( "border-color" "#808080 #fff #fff #808080" )
                 ]
             ]
             children
