@@ -395,10 +395,10 @@ viewDigits n =
 
         toInt string =
             case String.toInt string of
-                Ok num ->
+                Just num ->
                     num
 
-                Err _ ->
+                Nothing ->
                     0
 
         children =
