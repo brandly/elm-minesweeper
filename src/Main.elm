@@ -255,7 +255,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.mode of
         Play ->
-            Time.every Time.toSecond TimeSecond
+            Time.every 1000 TimeSecond
 
         _ ->
             Sub.none
