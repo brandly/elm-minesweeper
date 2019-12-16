@@ -17,11 +17,12 @@ import Time exposing (Posix, toSecond)
 main : Program Never Model Msg
 main =
     Browser.element
-        { init = ( initialModel, Cmd.none )
+        { init = (\_ -> (initialModel, Cmd.none) )
         , update = update
         , view = view
         , subscriptions = subscriptions
         }
+
 
 
 type alias Model =
@@ -522,8 +523,8 @@ viewCell size downOnHover grid mode cell =
 onRightClick : msg -> Html.Attribute msg
 onRightClick message =
     custom "contextmenu"
-        { preventDefault = True, stopPropagation = False }
-        (Json.succeed message)
+    (Json.succeed { message = message, preventDefault = True, stopPropagation = False })
+        
 
 
 buildWhich : String -> (Int -> msg) -> Html.Attribute msg
