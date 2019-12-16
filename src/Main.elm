@@ -353,14 +353,12 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
                     remainingFlags
                 )
             , faceDiv
-                [ style
-                    [ ( "display", "flex" )
-                    , ( "align-items", "center" )
-                    , ( "justify-content", "center" )
-                    , ( "width", "26px" )
-                    , ( "height", "26px" )
-                    , ( "cursor", "default" )
-                    ]
+                [ style "display" "flex" 
+                , style "display" "flex" 
+                , style "justify-content" "center"
+                , style "width" "26px"
+                , style "height" "26px"
+                , style "cursor" "default"
                 , onClick ClickFace
                 , onMouseDown (PressingFace True)
                 , onMouseUp (PressingFace False)
@@ -406,11 +404,11 @@ viewDigits n =
                 |> List.map (toInt >> Bitmap.forInt >> digit >> (\c -> c [] []))
     in
         frame
-            [ style
-                [ ( "height" "23px" )
-                , ( "border" "1px solid" )
-                , ( "border-color" "#808080 #fff #fff #808080" )
-                ]
+            [ 
+              style "height" "23px"
+            , style "border" "1px solid" 
+            , style "border-color" "#808080"
+            , style "#fff" "#808080"
             ]
             children
 
@@ -466,17 +464,14 @@ viewGrid activeCell mode unexposedNeighbors grid =
 
         viewColumn column =
             div
-                [ style
-                    [ ( "display", "inline-block" )
-                    ]
+                [ style "display" "inline-block" 
+                    
                 ]
                 (column |> List.map (markActive >> renderCell))
     in
         insetDiv
-            [ style
-                [ ( "width", px gridWidth )
-                , ( "height", px gridHeight )
-                ]
+            [ style "width" (px gridWidth )
+            , style "height" (px gridHeight )            
             , onMouseLeave ClearActiveCell
             ]
             (grid |> List.map viewColumn)
