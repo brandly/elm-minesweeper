@@ -14,7 +14,7 @@ import Random exposing (Seed)
 import Time exposing (Posix, toSecond)
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
     Browser.element
         { init = (\_ -> (initialModel, Cmd.none) )
