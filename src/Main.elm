@@ -191,14 +191,9 @@ update msg model =
 
                 cellsToArm : List Cell
                 cellsToArm =
-                    List.map
+                    List.filterMap
                         (\index ->
-                            case Array.get index available of
-                                Just cell ->
-                                    cell
-
-                                Nothing ->
-                                    Debug.log "nah"
+                            Array.get index available                            
                         )
                         randoms
 
