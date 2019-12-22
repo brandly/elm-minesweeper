@@ -311,7 +311,7 @@ view model =
                 Nothing ->
                     []
     in
-    if model.isDifficultySet == True then
+    if model.isDifficultySet then
         background
             []
             [ frame
