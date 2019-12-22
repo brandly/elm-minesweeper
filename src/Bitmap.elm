@@ -43,7 +43,9 @@ forInt n =
                         ( -117, 0 )
 
                     _ ->
-                        Debug.todo "Oops! Something went wrong. Don't worry, a team of (one) highly trained monkey will is trying to work out what went wrong."
+                        Debug.log "Oops! Something went wrong. Don't worry, a team of (one) highly trained will is trying to work out what went wrong. Please do submit an issue in Github if you ever see this message."
+                        (0,0)
+                        
             else
                 ( 0, 0 )
     in
