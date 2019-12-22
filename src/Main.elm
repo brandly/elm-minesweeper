@@ -91,7 +91,7 @@ initialModel =
     , time = 0
     , mode = Start
     , isRightClicked = False
-    , isDifficultySet = False
+    , isDifficultySet = True
     }
 
 
