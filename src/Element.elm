@@ -2,8 +2,6 @@ module Element exposing (..)
 
 import Html exposing (Attribute, Html)
 import Html.Attributes exposing (style)
-import Debug exposing (toString)
-
 
 
 type alias Element msg =
@@ -18,4 +16,4 @@ styled el css =
 
 px : Int -> String
 px x =
-    toString x ++ "px"
+    String.fromInt x ++ "px"
