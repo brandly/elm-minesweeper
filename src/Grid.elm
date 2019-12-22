@@ -74,8 +74,8 @@ gridToCells grid =
 
 
 filter : (Cell -> Bool) -> Grid -> List Cell
-filter filterVariable grid =
-    gridToCells grid |> List.filter filterVariable
+filter isGood grid =
+    gridToCells grid |> List.filter isGood
 
 
 findCell : (Cell -> Bool) -> Grid -> Cell
