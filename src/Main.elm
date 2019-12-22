@@ -273,7 +273,7 @@ view model =
                 , ( "min-height", "100vh" )
                 , ( "width", "100%" )
                 , ( "overflow", "hidden" )
-                , ( "background-image", "url('https://www.hdwallpapers.in/walls/windows_xp_bliss-wide.jpg')" )
+                , ( "background-image", "url('../../images/windows_xp_bliss-wide.jpg')" )
                 ]
 
         frame =
