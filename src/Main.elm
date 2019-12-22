@@ -398,7 +398,7 @@ viewDigits n =
                 string
 
         str =
-            minLen 3 (Debug.toString n)
+            minLen 3 (String.fromInt n)
 
         toInt string =
             case String.toInt string of
