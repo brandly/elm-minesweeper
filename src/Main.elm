@@ -1,26 +1,28 @@
 module Main exposing (..)
 
+import Browser exposing (..)
 import Array exposing (Array)
 import Bitmap as Bitmap exposing (Face(..))
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
-import Grid exposing (Cell, CellState(Exposed, Flagged, Initial), Column, Grid)
-import Html exposing (Html, div, p, text)
-import Html.Attributes exposing (style)
-import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp, onWithOptions)
+import Grid exposing (Cell, CellState(..), Column, Grid)
+import Html exposing (Html, div, p, text, h1, input, label)
+import Html.Attributes exposing (style, type_, name, value, checked)
+import Html.Events exposing (onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp, custom, onInput)
 import Json.Decode as Json
 import Random exposing (Seed)
-import Time exposing (Time, second)
+import Time exposing (Posix, toSecond)
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Html.program
-        { init = ( initialModel, Cmd.none )
+    Browser.element
+        { init = (\_ -> (initialModel, Cmd.none) )
         , update = update
         , view = view
         , subscriptions = subscriptions
         }
+
 
 
 type alias Model =
@@ -31,14 +33,15 @@ type alias Model =
     , time : Int
     , mode : GameMode
     , isRightClicked : Bool
-    }
+    , isDifficultySet : Bool
+    } 
 
 
 type Difficulty
     = Beginner
     | Intermediate
     | Expert
-    | Custom Int Int Int
+    -- {-| Custom Int Int Int-} -- Add in the custom branch later
 
 
 getBombCount : Difficulty -> Int
@@ -52,10 +55,10 @@ getBombCount difficulty =
 
         Expert ->
             99
-
+{- -- Add in a custom branch later
         Custom _ _ count ->
             count
-
+-}
 
 getDimensions : Difficulty -> ( Int, Int )
 getDimensions difficulty =
@@ -69,9 +72,10 @@ getDimensions difficulty =
         Expert ->
             ( 30, 16 )
 
+{- --- Add in a custom branch later
         Custom x y _ ->
             ( x, y )
-
+-}
 
 initialDifficulty : Difficulty
 initialDifficulty =
@@ -87,6 +91,7 @@ initialModel =
     , time = 0
     , mode = Start
     , isRightClicked = False
+    , isDifficultySet = True
     }
 
 
@@ -96,9 +101,11 @@ type Msg
     | RightClick Cell
     | PressingFace Bool
     | ClickFace
-    | TimeSecond Time
+    | TimeSecond Time.Posix
     | ArmRandomCells (List Int)
     | ClearActiveCell
+    | SetDifficulty Difficulty
+
 
 
 generateRandomInts : Int -> Grid -> Cmd Msg
@@ -129,14 +136,14 @@ update msg model =
                     model.activeCell /= Nothing && model.isRightClicked
 
                 isSatisfied : Cell -> Bool
-                isSatisfied cell =
-                    Grid.neighborBombCount cell model.grid <= Grid.neighborFlagCount cell model.grid
+                isSatisfied cell_square =
+                    Grid.neighborBombCount cell_square model.grid <= Grid.neighborFlagCount cell_square model.grid
 
                 grid : Grid
                 grid =
                     if model.mode == Start then
                         Grid.updateCell
-                            (\cell -> { cell | state = Exposed })
+                            (\cell_square -> { cell_square | state = Exposed })
                             cell
                             model.grid
                     else if bothBtnsPressed && cell.state == Exposed && isSatisfied cell then
@@ -189,14 +196,9 @@ update msg model =
 
                 cellsToArm : List Cell
                 cellsToArm =
-                    List.map
+                    List.filterMap
                         (\index ->
-                            case Array.get index available of
-                                Just cell ->
-                                    cell
-
-                                Nothing ->
-                                    Debug.crash "nah"
+                            Array.get index available                            
                         )
                         randoms
 
@@ -241,20 +243,22 @@ update msg model =
             ( { model | pressingFace = val }, Cmd.none )
 
         ClickFace ->
-            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start }, Cmd.none )
+            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start, isDifficultySet = False }, Cmd.none )
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
 
         ClearActiveCell ->
             ( { model | activeCell = Nothing }, Cmd.none )
+        SetDifficulty difficulty ->            
+            ({ model | game = difficulty, isDifficultySet = True, grid = Grid.fromDimensions (getDimensions difficulty), time = 0, mode = Start }, Cmd.none)
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.mode of
         Play ->
-            Time.every Time.second TimeSecond
+            Time.every 1000 TimeSecond
 
         _ ->
             Sub.none
@@ -269,7 +273,7 @@ view model =
                 , ( "min-height", "100vh" )
                 , ( "width", "100%" )
                 , ( "overflow", "hidden" )
-                , ( "background-image", "url('https://www.hdwallpapers.in/walls/windows_xp_bliss-wide.jpg')" )
+                , ( "background-image", "url('../../images/windows_xp_bliss-wide.jpg')" )
                 ]
 
         frame =
@@ -307,6 +311,7 @@ view model =
                 Nothing ->
                     []
     in
+    if model.isDifficultySet then
         background
             []
             [ frame
@@ -315,6 +320,11 @@ view model =
                 , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
                 ]
             ]
+    else
+        background
+            []
+            [modalView model]
+        
 
 
 viewHeader : Bool -> Bool -> Int -> Int -> GameMode -> Html Msg
@@ -352,14 +362,12 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
                     remainingFlags
                 )
             , faceDiv
-                [ style
-                    [ ( "display", "flex" )
-                    , ( "align-items", "center" )
-                    , ( "justify-content", "center" )
-                    , ( "width", "26px" )
-                    , ( "height", "26px" )
-                    , ( "cursor", "default" )
-                    ]
+                [ style "display" "flex" 
+                , style "display" "flex" 
+                , style "justify-content" "center"
+                , style "width" "26px"
+                , style "height" "26px"
+                , style "cursor" "default"
                 , onClick ClickFace
                 , onMouseDown (PressingFace True)
                 , onMouseUp (PressingFace False)
@@ -383,21 +391,21 @@ viewDigits n =
                 , ( "height", "23px" )
                 ]
 
-        minLen n str =
-            if String.length str < n then
-                minLen n ("0" ++ str)
+        minLen i string =
+            if String.length string < i then
+                minLen i ("0" ++ string)
             else
-                str
+                string
 
         str =
-            minLen 3 (toString n)
+            minLen 3 (String.fromInt n)
 
-        toInt str =
-            case String.toInt str of
-                Ok num ->
+        toInt string =
+            case String.toInt string of
+                Just num ->
                     num
 
-                Err _ ->
+                Nothing ->
                     0
 
         children =
@@ -405,11 +413,11 @@ viewDigits n =
                 |> List.map (toInt >> Bitmap.forInt >> digit >> (\c -> c [] []))
     in
         frame
-            [ style
-                [ ( "height", "23px" )
-                , ( "border", "1px solid" )
-                , ( "border-color", "#808080 #fff #fff #808080" )
-                ]
+            [ 
+              style "height" "23px"
+            , style "border" "1px solid" 
+            , style "border-color" "#808080"
+            , style "#fff" "#808080"
             ]
             children
 
@@ -465,17 +473,14 @@ viewGrid activeCell mode unexposedNeighbors grid =
 
         viewColumn column =
             div
-                [ style
-                    [ ( "display", "inline-block" )
-                    ]
+                [ style "display" "inline-block" 
+                    
                 ]
                 (column |> List.map (markActive >> renderCell))
     in
         insetDiv
-            [ style
-                [ ( "width", px gridWidth )
-                , ( "height", px gridHeight )
-                ]
+            [ style "width" (px gridWidth )
+            , style "height" (px gridHeight )            
             , onMouseLeave ClearActiveCell
             ]
             (grid |> List.map viewColumn)
@@ -525,9 +530,9 @@ viewCell size downOnHover grid mode cell =
 
 onRightClick : msg -> Html.Attribute msg
 onRightClick message =
-    onWithOptions "contextmenu"
-        { preventDefault = True, stopPropagation = False }
-        (Json.succeed message)
+    custom "contextmenu"
+    (Json.succeed { message = message, preventDefault = True, stopPropagation = False })
+        
 
 
 buildWhich : String -> (Int -> msg) -> Html.Attribute msg
@@ -561,4 +566,59 @@ raisedDiv =
         [ ( "border", "2px solid #7b7b7b" )
         , ( "border-top-color", "#fff" )
         , ( "border-left-color", "#fff" )
+        ]
+
+
+
+modalView  : Model -> Html Msg
+modalView model =
+  div []
+    [ 
+      div  maskStyle
+      [ div modalStyle 
+        [ h1 [] [ text"Please select a difficulty level" ]
+        , radiobutton "Beginner" (Beginner) model.game
+        , radiobutton "Intermediate" (Intermediate) model.game
+        , radiobutton "Expert" (Expert) model.game
+        ]
+      ]
+    ]
+
+
+maskStyle : List (Html.Attribute msg)
+maskStyle =  
+    [ style "background-color" "rgba(0,0,0,0.3)"
+    , style "position" "fixed"
+    , style "top" "0"
+    , style "left" "0"
+    , style "width" "100%"
+    , style "height" "100%"
+    ]
+
+modalStyle : List (Html.Attribute msg)
+modalStyle =  
+    [ style "background-color" "rgba(255,255,255,1.0)"
+    , style "position" "absolute"
+    , style "top" "50%"
+    , style "left" "50%"
+    , style "height" "auto"
+    , style "max-height" "80%"
+    , style "width" "700px"
+    , style "max-width" "95%"
+    , style "padding" "10px"
+    , style "border-radius" "3px"
+    , style "box-shadow" "1px 1px 5px rgba(0,0,0,0.5)"
+    , style "transform" "translate(-50%, -50%)"
+    ]
+
+radiobutton : String -> Difficulty -> Difficulty -> Html Msg
+radiobutton value difficulty currentGameDifficulty =
+    label []
+        [ input
+            [ type_ "radio"
+            , name "value"
+            , onClick (SetDifficulty difficulty)
+            , checked (difficulty == currentGameDifficulty)
+            ] []
+        , text value
         ]
