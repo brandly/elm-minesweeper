@@ -58,6 +58,7 @@ type Face
     | Surprised
     | Sad
     | Sunglasses
+    | SetDifficultyFace
 
 
 forFace : Face -> Element msg
@@ -79,7 +80,8 @@ forFace face =
 
                 Sunglasses ->
                     ( -104, -55 )
-              
+                SetDifficultyFace ->
+                    ( -130, -55 )
     in
     bitmap pos
 

@@ -105,6 +105,7 @@ type Msg
     | ArmRandomCells (List Int)
     | ClearActiveCell
     | SetDifficulty Difficulty
+    | ClickSetDifficultyFace
 
 
 
@@ -243,7 +244,9 @@ update msg model =
             ( { model | pressingFace = val }, Cmd.none )
 
         ClickFace ->
-            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start, isDifficultySet = False }, Cmd.none )
+            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start, isDifficultySet = True }, Cmd.none )
+        ClickSetDifficultyFace ->
+            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start, isDifficultySet = False }, Cmd.none )    
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -343,6 +346,10 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
             else
                 Bitmap.forFace Smile
 
+        newGameFaceDiv : Element msg
+        newGameFaceDiv =
+            Bitmap.forFace SetDifficultyFace
+
         header =
             styled insetDiv
                 [ ( "display", "flex" )
@@ -370,6 +377,19 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
                 , style "cursor" "default"
                 , onClick ClickFace
                 , onMouseDown (PressingFace True)
+                , onMouseUp (PressingFace False)
+                , onMouseOut (PressingFace False)
+                ]
+                []
+            , newGameFaceDiv
+                [ style "display" "flex" 
+                , style "display" "flex" 
+                , style "justify-content" "center"
+                , style "width" "26px"
+                , style "height" "26px"
+                , style "cursor" "default"
+                , onClick ClickSetDifficultyFace
+                , onMouseDown (PressingFace False)
                 , onMouseUp (PressingFace False)
                 , onMouseOut (PressingFace False)
                 ]
