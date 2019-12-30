@@ -79,6 +79,7 @@ forFace face =
 
                 Sunglasses ->
                     ( -104, -55 )
+              
     in
     bitmap pos
 
@@ -157,6 +158,6 @@ bitmap pos =
             (Tuple.first pos |> px) ++ " " ++ (Tuple.second pos |> px)
     in
     styled div
-        [ ( "background-image", "url(https://raw.githubusercontent.com/joelbyrd/external-resources/master/images/minesweeper.png)" )
+        [ ( "background-image", "url('../../images/minesweeper.png')" )
         , ( "background-position", bg )
         ]
