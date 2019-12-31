@@ -32,7 +32,7 @@ type alias Model =
     , time : Int
     , mode : GameMode
     , isRightClicked : Bool
-    , isDifficultySet : Bool
+    , menu : Maybe Menu
     }
 
 
@@ -44,6 +44,10 @@ type Difficulty
 
 
 -- {-| Custom Int Int Int-} -- Add in the custom branch later
+
+
+type Menu
+    = DifficultyMenu
 
 
 getBombCount : Difficulty -> Int
@@ -100,7 +104,7 @@ initialModel =
     , time = 0
     , mode = Start
     , isRightClicked = False
-    , isDifficultySet = True
+    , menu = Nothing
     }
 
 
@@ -236,7 +240,9 @@ update msg model =
                     getBombCount model.game
             in
             if bombCount < desiredBombCount then
-                ( { model | grid = grid }, generateRandomInts (desiredBombCount - bombCount) grid )
+                ( { model | grid = grid }
+                , generateRandomInts (desiredBombCount - bombCount) grid
+                )
 
             else
                 ( { model | grid = Grid.floodCell exposedCell grid }, Cmd.none )
@@ -263,10 +269,18 @@ update msg model =
             ( { model | pressingFace = val }, Cmd.none )
 
         ClickFace ->
-            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start, isDifficultySet = True }, Cmd.none )
+            ( { model
+                | grid = Grid.fromDimensions (getDimensions model.game)
+                , time = 0
+                , mode = Start
+              }
+            , Cmd.none
+            )
 
         ClickSetDifficultyFace ->
-            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start, isDifficultySet = False }, Cmd.none )
+            ( { model | menu = Just DifficultyMenu }
+            , Cmd.none
+            )
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -275,7 +289,15 @@ update msg model =
             ( { model | activeCell = Nothing }, Cmd.none )
 
         SetDifficulty difficulty ->
-            ( { model | game = difficulty, isDifficultySet = True, grid = Grid.fromDimensions (getDimensions difficulty), time = 0, mode = Start }, Cmd.none )
+            ( { model
+                | game = difficulty
+                , grid = Grid.fromDimensions (getDimensions difficulty)
+                , time = 0
+                , mode = Start
+                , menu = Nothing
+              }
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg
@@ -330,21 +352,22 @@ view model =
 
                 Nothing ->
                     []
-    in
-    if model.isDifficultySet then
-        background
-            []
-            [ frame
-                []
-                [ viewHeader model.pressingFace hasActiveCell (getBombCount model.game - flaggedCount) model.time model.mode
-                , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
-                ]
-            ]
 
-    else
-        background
-            []
-            [ modalView model ]
+        menu =
+            case model.menu of
+                Just DifficultyMenu ->
+                    modalView model
+
+                Nothing ->
+                    Element.none
+    in
+    background []
+        [ frame []
+            [ viewHeader model.pressingFace hasActiveCell (getBombCount model.game - flaggedCount) model.time model.mode
+            , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
+            ]
+        , menu
+        ]
 
 
 viewHeader : Bool -> Bool -> Int -> Int -> GameMode -> Html Msg
