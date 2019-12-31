@@ -651,14 +651,21 @@ modalView : Model -> Html Msg
 modalView model =
     div maskStyle
         [ modalContent []
-            [ windowsChrome [ style "padding" "18px" ]
-                [ p [] [ text "Please select a difficulty level" ]
-                , radiobutton "Beginner" Beginner model.game
-                , radiobutton "Intermediate" Intermediate model.game
-                , radiobutton "Expert" Expert model.game
+            [ windowsChrome [ style "padding" "0 18px 18px" ]
+                [ formGroup "Difficulty"
+                    [ radiobutton "Beginner" Beginner model.game
+                    , radiobutton "Intermediate" Intermediate model.game
+                    , radiobutton "Expert" Expert model.game
+                    ]
                 ]
             ]
         ]
+
+
+formGroup : String -> List (Html msg) -> Html msg
+formGroup title children =
+    div []
+        (p [] [ text title ] :: children)
 
 
 maskStyle : List (Html.Attribute msg)
