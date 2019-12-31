@@ -6,7 +6,7 @@ import Browser
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(..), Grid)
-import Html exposing (Html, div, h1, input, label, text)
+import Html exposing (Html, button, div, h1, input, label, p, text)
 import Html.Attributes exposing (checked, name, style, type_)
 import Html.Events exposing (custom, onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
 import Json.Decode as Json
@@ -32,7 +32,7 @@ type alias Model =
     , time : Int
     , mode : GameMode
     , isRightClicked : Bool
-    , isDifficultySet : Bool
+    , menu : Maybe Menu
     }
 
 
@@ -44,6 +44,10 @@ type Difficulty
 
 
 -- {-| Custom Int Int Int-} -- Add in the custom branch later
+
+
+type Menu
+    = DifficultyMenu
 
 
 getBombCount : Difficulty -> Int
@@ -100,7 +104,7 @@ initialModel =
     , time = 0
     , mode = Start
     , isRightClicked = False
-    , isDifficultySet = True
+    , menu = Nothing
     }
 
 
@@ -114,7 +118,7 @@ type Msg
     | ArmRandomCells (List Int)
     | ClearActiveCell
     | SetDifficulty Difficulty
-    | ClickSetDifficultyFace
+    | OpenMenu Menu
 
 
 generateRandomInts : Int -> Grid -> Cmd Msg
@@ -236,7 +240,9 @@ update msg model =
                     getBombCount model.game
             in
             if bombCount < desiredBombCount then
-                ( { model | grid = grid }, generateRandomInts (desiredBombCount - bombCount) grid )
+                ( { model | grid = grid }
+                , generateRandomInts (desiredBombCount - bombCount) grid
+                )
 
             else
                 ( { model | grid = Grid.floodCell exposedCell grid }, Cmd.none )
@@ -263,10 +269,18 @@ update msg model =
             ( { model | pressingFace = val }, Cmd.none )
 
         ClickFace ->
-            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start, isDifficultySet = True }, Cmd.none )
+            ( { model
+                | grid = Grid.fromDimensions (getDimensions model.game)
+                , time = 0
+                , mode = Start
+              }
+            , Cmd.none
+            )
 
-        ClickSetDifficultyFace ->
-            ( { model | grid = Grid.fromDimensions (getDimensions model.game), time = 0, mode = Start, isDifficultySet = False }, Cmd.none )
+        OpenMenu menu ->
+            ( { model | menu = Just menu }
+            , Cmd.none
+            )
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -275,7 +289,15 @@ update msg model =
             ( { model | activeCell = Nothing }, Cmd.none )
 
         SetDifficulty difficulty ->
-            ( { model | game = difficulty, isDifficultySet = True, grid = Grid.fromDimensions (getDimensions difficulty), time = 0, mode = Start }, Cmd.none )
+            ( { model
+                | game = difficulty
+                , grid = Grid.fromDimensions (getDimensions difficulty)
+                , time = 0
+                , mode = Start
+                , menu = Nothing
+              }
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg
@@ -298,6 +320,7 @@ view model =
                 , ( "width", "100%" )
                 , ( "overflow", "hidden" )
                 , ( "background-image", "url('./images/windows_xp_bliss-wide.jpg')" )
+                , ( "font-family", "Tahoma" )
                 ]
 
         frame =
@@ -305,9 +328,6 @@ view model =
                 [ ( "display", "inline-block" )
                 , ( "background-color", "#bdbdbd" )
                 , ( "padding", "5px" )
-                , ( "position", "absolute" )
-                , ( "top", "48px" )
-                , ( "left", "96px" )
                 ]
 
         hasActiveCell : Bool
@@ -330,21 +350,52 @@ view model =
 
                 Nothing ->
                     []
+
+        menu =
+            case model.menu of
+                Just DifficultyMenu ->
+                    modalView model
+
+                Nothing ->
+                    Element.none
+
+        toolbarBtn =
+            styled button
+                [ ( "background", "none" )
+                , ( "border", "none" )
+                , ( "padding", "0 8px" )
+                , ( "outline", "0" )
+                , ( "font-size", "14px" )
+                ]
+
+        viewToolbar =
+            styled div
+                [ ( "width", "100%" )
+                , ( "height", "24px" )
+                , ( "display", "flex" )
+                , ( "align-items", "center" )
+                ]
     in
-    if model.isDifficultySet then
-        background
-            []
-            [ frame
-                []
-                [ viewHeader model.pressingFace hasActiveCell (getBombCount model.game - flaggedCount) model.time model.mode
+    background []
+        [ windowsChrome
+            [ style "position" "absolute"
+            , style "top" "48px"
+            , style "left" "96px"
+            ]
+            [ viewToolbar []
+                [ toolbarBtn [ onClick (OpenMenu DifficultyMenu) ] [ text "Game" ]
+                ]
+            , frame []
+                [ viewHeader model.pressingFace
+                    hasActiveCell
+                    (getBombCount model.game - flaggedCount)
+                    model.time
+                    model.mode
                 , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
                 ]
             ]
-
-    else
-        background
-            []
-            [ modalView model ]
+        , menu
+        ]
 
 
 viewHeader : Bool -> Bool -> Int -> Int -> GameMode -> Html Msg
@@ -367,10 +418,6 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
             else
                 Bitmap.forFace Smile
 
-        newGameFaceDiv : Element msg
-        newGameFaceDiv =
-            Bitmap.forFace SetDifficultyFace
-
         header =
             styled insetDiv
                 [ ( "display", "flex" )
@@ -392,26 +439,12 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
             )
         , faceDiv
             [ style "display" "flex"
-            , style "display" "flex"
             , style "justify-content" "center"
             , style "width" "26px"
             , style "height" "26px"
             , style "cursor" "default"
             , onClick ClickFace
             , onMouseDown (PressingFace True)
-            , onMouseUp (PressingFace False)
-            , onMouseOut (PressingFace False)
-            ]
-            []
-        , newGameFaceDiv
-            [ style "display" "flex"
-            , style "display" "flex"
-            , style "justify-content" "center"
-            , style "width" "26px"
-            , style "height" "26px"
-            , style "cursor" "default"
-            , onClick ClickSetDifficultyFace
-            , onMouseDown (PressingFace False)
             , onMouseUp (PressingFace False)
             , onMouseOut (PressingFace False)
             ]
@@ -616,16 +649,23 @@ raisedDiv =
 
 modalView : Model -> Html Msg
 modalView model =
-    div []
-        [ div maskStyle
-            [ div modalStyle
-                [ h1 [] [ text "Please select a difficulty level" ]
-                , radiobutton "Beginner" Beginner model.game
-                , radiobutton "Intermediate" Intermediate model.game
-                , radiobutton "Expert" Expert model.game
+    div maskStyle
+        [ modalContent []
+            [ windowsChrome [ style "padding" "0 18px 18px" ]
+                [ formGroup "Difficulty"
+                    [ radiobutton "Beginner" Beginner model.game
+                    , radiobutton "Intermediate" Intermediate model.game
+                    , radiobutton "Expert" Expert model.game
+                    ]
                 ]
             ]
         ]
+
+
+formGroup : String -> List (Html msg) -> Html msg
+formGroup title children =
+    div []
+        (p [] [ text title ] :: children)
 
 
 maskStyle : List (Html.Attribute msg)
@@ -639,32 +679,40 @@ maskStyle =
     ]
 
 
-modalStyle : List (Html.Attribute msg)
-modalStyle =
-    [ style "background-color" "rgba(255,255,255,1.0)"
-    , style "position" "absolute"
-    , style "top" "50%"
-    , style "left" "50%"
-    , style "height" "auto"
-    , style "max-height" "80%"
-    , style "width" "700px"
-    , style "max-width" "95%"
-    , style "padding" "10px"
-    , style "border-radius" "3px"
-    , style "box-shadow" "1px 1px 5px rgba(0,0,0,0.5)"
-    , style "transform" "translate(-50%, -50%)"
-    ]
+modalContent : Element msg
+modalContent =
+    styled div
+        [ ( "position", "absolute" )
+        , ( "top", "50%" )
+        , ( "left", "50%" )
+        , ( "height", "auto" )
+        , ( "max-height", "80%" )
+        , ( "width", "400px" )
+        , ( "max-width", "95%" )
+        , ( "padding", "10px" )
+        , ( "border-radius", "3px" )
+        , ( "transform", "translate(-50%, -50%)" )
+        ]
 
 
 radiobutton : String -> Difficulty -> Difficulty -> Html Msg
 radiobutton value difficulty currentGameDifficulty =
-    label []
+    label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
             , name "value"
             , onClick (SetDifficulty difficulty)
             , checked (difficulty == currentGameDifficulty)
+            , style "margin" "4px 8px"
             ]
             []
         , text value
+        ]
+
+
+windowsChrome : Element msg
+windowsChrome =
+    styled div
+        [ ( "border", "3px solid #135ddf" )
+        , ( "background", "#ece9d8" )
         ]
