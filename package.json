@@ -6,7 +6,8 @@
     "test": "elm-analyse",
     "static": "cp src/index.html dist && cp -R src/images dist",
     "deploy": "npm run build -- --optimize && npm run compress && npm run static && gh-pages --dist dist/",
-    "compress": "uglifyjs dist/the.js -o dist/the.js --compress --mangle"
+    "compress": "uglifyjs dist/the.js -o dist/the.js --compress --mangle",
+    "reactor": "elm reactor"
   },
   "dependencies": {},
   "devDependencies": {
