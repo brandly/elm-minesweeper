@@ -118,7 +118,7 @@ type Msg
     | ArmRandomCells (List Int)
     | ClearActiveCell
     | SetDifficulty Difficulty
-    | ClickSetDifficultyFace
+    | OpenMenu Menu
 
 
 generateRandomInts : Int -> Grid -> Cmd Msg
@@ -277,8 +277,8 @@ update msg model =
             , Cmd.none
             )
 
-        ClickSetDifficultyFace ->
-            ( { model | menu = Just DifficultyMenu }
+        OpenMenu menu ->
+            ( { model | menu = Just menu }
             , Cmd.none
             )
 
@@ -433,7 +433,7 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
             , style "width" "26px"
             , style "height" "26px"
             , style "cursor" "default"
-            , onClick ClickSetDifficultyFace
+            , onClick (OpenMenu DifficultyMenu)
             , onMouseDown (PressingFace False)
             , onMouseUp (PressingFace False)
             , onMouseOut (PressingFace False)
