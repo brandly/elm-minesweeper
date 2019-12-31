@@ -1,4 +1,23 @@
-module Grid exposing (..)
+module Grid exposing
+    ( Cell
+    , CellState(..)
+    , Column
+    , Grid
+    , exposeNeighbors
+    , filter
+    , findCell
+    , floodCell
+    , fromDimensions
+    , getNeighbors
+    , isCleared
+    , neighborBombCount
+    , neighborFlagCount
+    , toggleFlag
+    , totalBombs
+    , updateCell
+    , updateCells
+    , withBombPairs
+    )
 
 
 type CellState

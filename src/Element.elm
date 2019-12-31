@@ -1,4 +1,4 @@
-module Element exposing (..)
+module Element exposing (Element, px, styled)
 
 import Html exposing (Attribute, Html)
 import Html.Attributes exposing (style)

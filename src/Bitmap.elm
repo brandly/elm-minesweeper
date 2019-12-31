@@ -1,4 +1,4 @@
-module Bitmap exposing (..)
+module Bitmap exposing (Face(..), forCell, forFace, forInt)
 
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode)

@@ -1,17 +1,17 @@
-module Main exposing (..)
+module Main exposing (Model, Msg(..), main, subscriptions, update, view)
 
 import Array exposing (Array)
 import Bitmap as Bitmap exposing (Face(..))
-import Browser exposing (..)
+import Browser
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
-import Grid exposing (Cell, CellState(..), Column, Grid)
-import Html exposing (Html, div, h1, input, label, p, text)
-import Html.Attributes exposing (checked, name, style, type_, value)
-import Html.Events exposing (custom, onClick, onInput, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
+import Grid exposing (Cell, CellState(..), Grid)
+import Html exposing (Html, div, h1, input, label, text)
+import Html.Attributes exposing (checked, name, style, type_)
+import Html.Events exposing (custom, onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
 import Json.Decode as Json
-import Random exposing (Seed)
-import Time exposing (Posix, toSecond)
+import Random
+import Time
 
 
 main : Program () Model Msg
@@ -312,12 +312,7 @@ view model =
 
         hasActiveCell : Bool
         hasActiveCell =
-            case model.activeCell of
-                Just cell ->
-                    True
-
-                Nothing ->
-                    False
+            isJust model.activeCell
 
         flaggedCount =
             model.grid
@@ -507,18 +502,9 @@ viewGrid activeCell mode unexposedNeighbors grid =
                     Nothing ->
                         cell
 
-        hasActive : Maybe Cell -> Bool
-        hasActive active =
-            case active of
-                Just cell ->
-                    True
-
-                Nothing ->
-                    False
-
         renderCell : Cell -> Html Msg
         renderCell =
-            viewCell size (hasActive activeCell) grid mode
+            viewCell size (isJust activeCell) grid mode
 
         viewColumn column =
             div
@@ -598,6 +584,16 @@ onWhichMouseUp =
 onWhichMouseDown : (Int -> msg) -> Html.Attribute msg
 onWhichMouseDown =
     buildWhich "mousedown"
+
+
+isJust : Maybe a -> Bool
+isJust a =
+    case a of
+        Just _ ->
+            True
+
+        Nothing ->
+            False
 
 
 insetDiv : Element msg
