@@ -2,7 +2,7 @@ module Bitmap exposing (..)
 
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode)
-import Grid exposing (Cell, CellState(Exposed, Flagged))
+import Grid exposing (Cell, CellState(..))
 import Html exposing (div)
 
 
@@ -43,7 +43,9 @@ forInt n =
                         ( -117, 0 )
 
                     _ ->
-                        Debug.crash ""
+                        Debug.log "Oops! Something went wrong. Don't worry, a team of (one) highly trained will is trying to work out what went wrong. Please do submit an issue in Github if you ever see this message."
+                            ( 0, 0 )
+
             else
                 ( 0, 0 )
     in
@@ -56,6 +58,7 @@ type Face
     | Surprised
     | Sad
     | Sunglasses
+    | SetDifficultyFace
 
 
 forFace : Face -> Element msg
@@ -77,6 +80,9 @@ forFace face =
 
                 Sunglasses ->
                     ( -104, -55 )
+
+                SetDifficultyFace ->
+                    ( -130, -55 )
     in
     bitmap pos
 
@@ -129,19 +135,26 @@ forCell neighbors mode cell =
             if cell.state == Exposed then
                 if cell.bomb then
                     ( -32, -39 )
+
                 else
                     mapNum neighbors
+
             else if mode == GameMode.Lose && cell.bomb then
                 if cell.state == Flagged then
                     flag
+
                 else
                     bomb
+
             else if mode == GameMode.Lose && not cell.bomb && cell.state == Flagged then
                 misflagged
+
             else if cell.state == Flagged || cell.bomb && mode == GameMode.Win then
                 flag
+
             else if cell.active then
                 ( 0, -23 )
+
             else
                 ( 0, -39 )
     in
@@ -155,6 +168,6 @@ bitmap pos =
             (Tuple.first pos |> px) ++ " " ++ (Tuple.second pos |> px)
     in
     styled div
-        [ ( "background-image", "url(https://raw.githubusercontent.com/joelbyrd/external-resources/master/images/minesweeper.png)" )
+        [ ( "background-image", "url('./images/minesweeper.png')" )
         , ( "background-position", bg )
         ]

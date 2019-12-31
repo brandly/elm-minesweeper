@@ -41,16 +41,16 @@ withBombPairs pairs grid =
     let
         head =
             case List.head pairs of
-                Just head ->
-                    head
+                Just firstElement ->
+                    firstElement
 
                 Nothing ->
                     ( -1, -1 )
 
         tail =
             case List.tail pairs of
-                Just tail ->
-                    tail
+                Just lastElement ->
+                    lastElement
 
                 Nothing ->
                     []
@@ -64,6 +64,7 @@ withBombPairs pairs grid =
         withBombPairs
             tail
             (addBomb grid)
+
     else
         grid
 
@@ -74,8 +75,8 @@ gridToCells grid =
 
 
 filter : (Cell -> Bool) -> Grid -> List Cell
-filter filter grid =
-    gridToCells grid |> List.filter filter
+filter isGood grid =
+    gridToCells grid |> List.filter isGood
 
 
 findCell : (Cell -> Bool) -> Grid -> Cell
@@ -120,6 +121,7 @@ updateCell update cell grid =
                 (\og ->
                     if og.x == cell.x && og.y == cell.y then
                         update cell
+
                     else
                         og
                 )
@@ -133,8 +135,10 @@ toggleFlag cell grid =
         state =
             if cell.state == Exposed then
                 Exposed
+
             else if cell.state == Flagged then
                 Initial
+
             else
                 Flagged
     in
@@ -199,6 +203,7 @@ floodCells cells grid =
                         if neighborBombCount cell newGrid == 0 then
                             getNeighbors cell newGrid
                                 |> List.filter (\c -> not c.bomb && c.state == Initial)
+
                         else
                             []
                     )
@@ -206,6 +211,7 @@ floodCells cells grid =
     in
     if List.length additional > 0 then
         floodCells additional newGrid
+
     else
         newGrid
 
