@@ -323,14 +323,6 @@ view model =
                 , ( "font-family", "Tahoma" )
                 ]
 
-        chrome =
-            styled div
-                [ ( "position", "absolute" )
-                , ( "top", "48px" )
-                , ( "left", "96px" )
-                , ( "border", "3px solid #135ddf" )
-                ]
-
         frame =
             styled raisedDiv
                 [ ( "display", "inline-block" )
@@ -380,13 +372,16 @@ view model =
             styled div
                 [ ( "width", "100%" )
                 , ( "height", "24px" )
-                , ( "background", "#ece9d8" )
                 , ( "display", "flex" )
                 , ( "align-items", "center" )
                 ]
     in
     background []
-        [ chrome []
+        [ windowsChrome
+            [ style "position" "absolute"
+            , style "top" "48px"
+            , style "left" "96px"
+            ]
             [ viewToolbar []
                 [ toolbarBtn [ onClick (OpenMenu DifficultyMenu) ] [ text "Game" ]
                 ]
@@ -655,11 +650,13 @@ raisedDiv =
 modalView : Model -> Html Msg
 modalView model =
     div maskStyle
-        [ div modalStyle
-            [ h1 [] [ text "Please select a difficulty level" ]
-            , radiobutton "Beginner" Beginner model.game
-            , radiobutton "Intermediate" Intermediate model.game
-            , radiobutton "Expert" Expert model.game
+        [ modalContent []
+            [ windowsChrome [ style "padding" "18px" ]
+                [ p [] [ text "Please select a difficulty level" ]
+                , radiobutton "Beginner" Beginner model.game
+                , radiobutton "Intermediate" Intermediate model.game
+                , radiobutton "Expert" Expert model.game
+                ]
             ]
         ]
 
@@ -675,32 +672,40 @@ maskStyle =
     ]
 
 
-modalStyle : List (Html.Attribute msg)
-modalStyle =
-    [ style "background-color" "rgba(255,255,255,1.0)"
-    , style "position" "absolute"
-    , style "top" "50%"
-    , style "left" "50%"
-    , style "height" "auto"
-    , style "max-height" "80%"
-    , style "width" "700px"
-    , style "max-width" "95%"
-    , style "padding" "10px"
-    , style "border-radius" "3px"
-    , style "box-shadow" "1px 1px 5px rgba(0,0,0,0.5)"
-    , style "transform" "translate(-50%, -50%)"
-    ]
+modalContent : Element msg
+modalContent =
+    styled div
+        [ ( "position", "absolute" )
+        , ( "top", "50%" )
+        , ( "left", "50%" )
+        , ( "height", "auto" )
+        , ( "max-height", "80%" )
+        , ( "width", "400px" )
+        , ( "max-width", "95%" )
+        , ( "padding", "10px" )
+        , ( "border-radius", "3px" )
+        , ( "transform", "translate(-50%, -50%)" )
+        ]
 
 
 radiobutton : String -> Difficulty -> Difficulty -> Html Msg
 radiobutton value difficulty currentGameDifficulty =
-    label []
+    label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
             , name "value"
             , onClick (SetDifficulty difficulty)
             , checked (difficulty == currentGameDifficulty)
+            , style "margin" "4px 8px"
             ]
             []
         , text value
+        ]
+
+
+windowsChrome : Element msg
+windowsChrome =
+    styled div
+        [ ( "border", "3px solid #135ddf" )
+        , ( "background", "#ece9d8" )
         ]
