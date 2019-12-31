@@ -6,7 +6,7 @@ import Browser
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(..), Grid)
-import Html exposing (Html, div, h1, input, label, text)
+import Html exposing (Html, button, div, h1, input, label, p, text)
 import Html.Attributes exposing (checked, name, style, type_)
 import Html.Events exposing (custom, onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
 import Json.Decode as Json
@@ -320,6 +320,15 @@ view model =
                 , ( "width", "100%" )
                 , ( "overflow", "hidden" )
                 , ( "background-image", "url('./images/windows_xp_bliss-wide.jpg')" )
+                , ( "font-family", "Tahoma" )
+                ]
+
+        chrome =
+            styled div
+                [ ( "position", "absolute" )
+                , ( "top", "48px" )
+                , ( "left", "96px" )
+                , ( "border", "3px solid #135ddf" )
                 ]
 
         frame =
@@ -327,9 +336,6 @@ view model =
                 [ ( "display", "inline-block" )
                 , ( "background-color", "#bdbdbd" )
                 , ( "padding", "5px" )
-                , ( "position", "absolute" )
-                , ( "top", "48px" )
-                , ( "left", "96px" )
                 ]
 
         hasActiveCell : Bool
@@ -360,11 +366,38 @@ view model =
 
                 Nothing ->
                     Element.none
+
+        toolbarBtn =
+            styled button
+                [ ( "background", "none" )
+                , ( "border", "none" )
+                , ( "padding", "0 8px" )
+                , ( "outline", "0" )
+                , ( "font-size", "14px" )
+                ]
+
+        viewToolbar =
+            styled div
+                [ ( "width", "100%" )
+                , ( "height", "24px" )
+                , ( "background", "#ece9d8" )
+                , ( "display", "flex" )
+                , ( "align-items", "center" )
+                ]
     in
     background []
-        [ frame []
-            [ viewHeader model.pressingFace hasActiveCell (getBombCount model.game - flaggedCount) model.time model.mode
-            , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
+        [ chrome []
+            [ viewToolbar []
+                [ toolbarBtn [ onClick (OpenMenu DifficultyMenu) ] [ text "Game" ]
+                ]
+            , frame []
+                [ viewHeader model.pressingFace
+                    hasActiveCell
+                    (getBombCount model.game - flaggedCount)
+                    model.time
+                    model.mode
+                , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
+                ]
             ]
         , menu
         ]
@@ -390,10 +423,6 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
             else
                 Bitmap.forFace Smile
 
-        newGameFaceDiv : Element msg
-        newGameFaceDiv =
-            Bitmap.forFace SetDifficultyFace
-
         header =
             styled insetDiv
                 [ ( "display", "flex" )
@@ -415,26 +444,12 @@ viewHeader pressingFace hasActiveCell remainingFlags time mode =
             )
         , faceDiv
             [ style "display" "flex"
-            , style "display" "flex"
             , style "justify-content" "center"
             , style "width" "26px"
             , style "height" "26px"
             , style "cursor" "default"
             , onClick ClickFace
             , onMouseDown (PressingFace True)
-            , onMouseUp (PressingFace False)
-            , onMouseOut (PressingFace False)
-            ]
-            []
-        , newGameFaceDiv
-            [ style "display" "flex"
-            , style "display" "flex"
-            , style "justify-content" "center"
-            , style "width" "26px"
-            , style "height" "26px"
-            , style "cursor" "default"
-            , onClick (OpenMenu DifficultyMenu)
-            , onMouseDown (PressingFace False)
             , onMouseUp (PressingFace False)
             , onMouseOut (PressingFace False)
             ]
