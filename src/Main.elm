@@ -639,14 +639,12 @@ raisedDiv =
 
 modalView : Model -> Html Msg
 modalView model =
-    div []
-        [ div maskStyle
-            [ div modalStyle
-                [ h1 [] [ text "Please select a difficulty level" ]
-                , radiobutton "Beginner" Beginner model.game
-                , radiobutton "Intermediate" Intermediate model.game
-                , radiobutton "Expert" Expert model.game
-                ]
+    div maskStyle
+        [ div modalStyle
+            [ h1 [] [ text "Please select a difficulty level" ]
+            , radiobutton "Beginner" Beginner model.game
+            , radiobutton "Intermediate" Intermediate model.game
+            , radiobutton "Expert" Expert model.game
             ]
         ]
 
