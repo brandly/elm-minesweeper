@@ -10,44 +10,39 @@ forInt : Int -> Element msg
 forInt n =
     let
         pos =
-            if n >= 0 && n <= 9 then
-                case n of
-                    0 ->
-                        ( 0, 0 )
+            case n of
+                0 ->
+                    ( 0, 0 )
 
-                    1 ->
-                        ( -13, 0 )
+                1 ->
+                    ( -13, 0 )
 
-                    2 ->
-                        ( -26, 0 )
+                2 ->
+                    ( -26, 0 )
 
-                    3 ->
-                        ( -39, 0 )
+                3 ->
+                    ( -39, 0 )
 
-                    4 ->
-                        ( -52, 0 )
+                4 ->
+                    ( -52, 0 )
 
-                    5 ->
-                        ( -65, 0 )
+                5 ->
+                    ( -65, 0 )
 
-                    6 ->
-                        ( -78, 0 )
+                6 ->
+                    ( -78, 0 )
 
-                    7 ->
-                        ( -91, 0 )
+                7 ->
+                    ( -91, 0 )
 
-                    8 ->
-                        ( -104, 0 )
+                8 ->
+                    ( -104, 0 )
 
-                    9 ->
-                        ( -117, 0 )
+                9 ->
+                    ( -117, 0 )
 
-                    _ ->
-                        Debug.log "Oops! Something went wrong. Don't worry, a team of (one) highly trained will is trying to work out what went wrong. Please do submit an issue in Github if you ever see this message."
-                            ( 0, 0 )
-
-            else
-                ( 0, 0 )
+                _ ->
+                    ( 0, 0 )
     in
     bitmap pos
 
