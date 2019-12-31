@@ -44,8 +44,8 @@ forInt n =
 
                     _ ->
                         Debug.log "Oops! Something went wrong. Don't worry, a team of (one) highly trained will is trying to work out what went wrong. Please do submit an issue in Github if you ever see this message."
-                        (0,0)
-                        
+                            ( 0, 0 )
+
             else
                 ( 0, 0 )
     in
@@ -80,6 +80,7 @@ forFace face =
 
                 Sunglasses ->
                     ( -104, -55 )
+
                 SetDifficultyFace ->
                     ( -130, -55 )
     in
@@ -134,19 +135,26 @@ forCell neighbors mode cell =
             if cell.state == Exposed then
                 if cell.bomb then
                     ( -32, -39 )
+
                 else
                     mapNum neighbors
+
             else if mode == GameMode.Lose && cell.bomb then
                 if cell.state == Flagged then
                     flag
+
                 else
                     bomb
+
             else if mode == GameMode.Lose && not cell.bomb && cell.state == Flagged then
                 misflagged
+
             else if cell.state == Flagged || cell.bomb && mode == GameMode.Win then
                 flag
+
             else if cell.active then
                 ( 0, -23 )
+
             else
                 ( 0, -39 )
     in
@@ -160,6 +168,6 @@ bitmap pos =
             (Tuple.first pos |> px) ++ " " ++ (Tuple.second pos |> px)
     in
     styled div
-        [ ( "background-image", "url('../../images/minesweeper.png')" )
+        [ ( "background-image", "url('./images/minesweeper.png')" )
         , ( "background-position", bg )
         ]
