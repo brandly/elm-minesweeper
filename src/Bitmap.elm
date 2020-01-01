@@ -157,12 +157,8 @@ forCell neighbors mode cell =
 
 
 bitmap : ( Int, Int ) -> Element msg
-bitmap pos =
-    let
-        bg =
-            (Tuple.first pos |> px) ++ " " ++ (Tuple.second pos |> px)
-    in
+bitmap ( x, y ) =
     styled div
         [ ( "background-image", "url('./images/minesweeper.png')" )
-        , ( "background-position", bg )
+        , ( "background-position", px x ++ " " ++ px y )
         ]
