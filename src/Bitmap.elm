@@ -126,32 +126,45 @@ forCell neighbors mode cell =
         bomb =
             ( -64, -39 )
 
-        pos =
-            if cell.state == Exposed then
-                if cell.bomb then
-                    ( -32, -39 )
+        redBomb =
+            ( -32, -39 )
 
-                else
+        pressed =
+            ( 0, -23 )
+
+        raised =
+            ( 0, -39 )
+
+        pos =
+            case ( mode, cell.state, cell.bomb ) of
+                ( _, Exposed, True ) ->
+                    redBomb
+
+                ( _, Exposed, False ) ->
                     mapNum neighbors
 
-            else if mode == GameMode.Lose && cell.bomb then
-                if cell.state == Flagged then
+                ( GameMode.Lose, Flagged, True ) ->
                     flag
 
-                else
+                ( GameMode.Lose, Flagged, False ) ->
+                    misflagged
+
+                ( GameMode.Lose, _, True ) ->
                     bomb
 
-            else if mode == GameMode.Lose && not cell.bomb && cell.state == Flagged then
-                misflagged
+                ( _, Flagged, _ ) ->
+                    flag
 
-            else if cell.state == Flagged || cell.bomb && mode == GameMode.Win then
-                flag
+                -- all bombs are flagged after winning
+                ( GameMode.Win, _, True ) ->
+                    flag
 
-            else if cell.active then
-                ( 0, -23 )
+                ( _, _, _ ) ->
+                    if cell.active then
+                        pressed
 
-            else
-                ( 0, -39 )
+                    else
+                        raised
     in
     bitmap pos
 
