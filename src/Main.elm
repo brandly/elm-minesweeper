@@ -383,7 +383,7 @@ view model =
             , style "left" "96px"
             ]
             [ viewToolbar []
-                [ toolbarBtn [ onClick (OpenMenu DifficultyMenu) ] [ text "Game" ]
+                [ toolbarBtn [ onClick (OpenMenu DifficultyMenu) ] [ text "Set Difficulty" ]
                 ]
             , frame []
                 [ viewHeader model.pressingFace
@@ -476,17 +476,9 @@ viewDigits n =
         str =
             minLen 3 (String.fromInt n)
 
-        toInt string =
-            case String.toInt string of
-                Just num ->
-                    num
-
-                Nothing ->
-                    0
-
         children =
-            String.split "" str
-                |> List.map (toInt >> Bitmap.forInt >> digit >> (\c -> c [] []))
+            String.toList str
+                |> List.map (Bitmap.forChar >> digit >> (\c -> c [] []))
     in
     frame
         [ style "height" "23px"
