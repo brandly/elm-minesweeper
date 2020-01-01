@@ -159,7 +159,7 @@ forCell neighbors mode cell =
                 ( GameMode.Win, _, True ) ->
                     flag
 
-                ( _, _, _ ) ->
+                ( _, Initial, _ ) ->
                     if cell.active then
                         pressed
 
