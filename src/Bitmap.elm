@@ -1,4 +1,4 @@
-module Bitmap exposing (Face(..), forCell, forFace, forInt)
+module Bitmap exposing (Face(..), forCell, forChar, forFace)
 
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode)
@@ -6,40 +6,43 @@ import Grid exposing (Cell, CellState(..))
 import Html exposing (div)
 
 
-forInt : Int -> Element msg
-forInt n =
+forChar : Char -> Element msg
+forChar n =
     let
         pos =
             case n of
-                0 ->
+                '0' ->
                     ( 0, 0 )
 
-                1 ->
+                '1' ->
                     ( -13, 0 )
 
-                2 ->
+                '2' ->
                     ( -26, 0 )
 
-                3 ->
+                '3' ->
                     ( -39, 0 )
 
-                4 ->
+                '4' ->
                     ( -52, 0 )
 
-                5 ->
+                '5' ->
                     ( -65, 0 )
 
-                6 ->
+                '6' ->
                     ( -78, 0 )
 
-                7 ->
+                '7' ->
                     ( -91, 0 )
 
-                8 ->
+                '8' ->
                     ( -104, 0 )
 
-                9 ->
+                '9' ->
                     ( -117, 0 )
+
+                '-' ->
+                    ( -130, 0 )
 
                 _ ->
                     ( 0, 0 )
