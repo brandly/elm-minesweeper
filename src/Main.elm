@@ -40,10 +40,7 @@ type Difficulty
     = Beginner
     | Intermediate
     | Expert
-
-
-
--- {-| Custom Int Int Int-} -- Add in the custom branch later
+    | Custom Int Int Int
 
 
 type Menu
@@ -62,12 +59,8 @@ getBombCount difficulty =
         Expert ->
             99
 
-
-
-{- -- Add in a custom branch later
-   Custom _ _ count ->
-       count
--}
+        Custom _ _ count ->
+            count
 
 
 getDimensions : Difficulty -> ( Int, Int )
@@ -82,12 +75,8 @@ getDimensions difficulty =
         Expert ->
             ( 30, 16 )
 
-
-
-{- --- Add in a custom branch later
-   Custom x y _ ->
-       ( x, y )
--}
+        Custom x y _ ->
+            ( x, y )
 
 
 initialDifficulty : Difficulty
