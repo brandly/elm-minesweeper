@@ -1,3 +1,11 @@
+# Demo:
+
+https://brandly.github.io/elm-minesweeper/
+
+![Alt text](src//images/screenshot.png?raw=true "Screenshot of Minesweeper")
+
+[Contribution guidelines for this project](docs/CONTRIBUTING.md)
+
 # elm-minesweeper
 
 Set up.
@@ -26,3 +34,13 @@ $ open http://localhost:8000/src/Main.elm
 ```shell
 $ npm run format
 ```
+
+
+## Want a challenge?
+
+Try:
+
+* Add the ability to record high scores (perhaps by storing values locally).
+
+* Add the ability to customize the size of the minesweeper playing area.
+
