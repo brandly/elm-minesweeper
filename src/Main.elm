@@ -6,12 +6,13 @@ import Browser
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(..), Grid)
-import Html exposing (Html, button, div, h1, input, label, p, text)
-import Html.Attributes exposing (checked, name, style, type_)
-import Html.Events exposing (custom, onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
+import Html exposing (Html, br, button, div, h1, input, label, p, text)
+import Html.Attributes exposing (checked, name, placeholder, style, type_, value)
+import Html.Events exposing (custom, onClick, onInput, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
 import Json.Decode as Json
 import Random
 import Time
+import Tuple exposing (first, second)
 
 
 main : Program () Model Msg
@@ -36,6 +37,17 @@ type alias Model =
     }
 
 
+startGame : Model -> Difficulty -> Model
+startGame model difficulty =
+    { model
+        | game = difficulty
+        , grid = Grid.fromDimensions (getDimensions difficulty)
+        , time = 0
+        , mode = Start
+        , menu = Nothing
+    }
+
+
 type Difficulty
     = Beginner
     | Intermediate
@@ -45,6 +57,7 @@ type Difficulty
 
 type Menu
     = DifficultyMenu
+    | CustomDifficultyMenu Int Int Int
 
 
 getBombCount : Difficulty -> Int
@@ -278,15 +291,17 @@ update msg model =
             ( { model | activeCell = Nothing }, Cmd.none )
 
         SetDifficulty difficulty ->
-            ( { model
-                | game = difficulty
-                , grid = Grid.fromDimensions (getDimensions difficulty)
-                , time = 0
-                , mode = Start
-                , menu = Nothing
-              }
-            , Cmd.none
-            )
+            case difficulty of
+                _ ->
+                    ( { model
+                        | game = difficulty
+                        , grid = Grid.fromDimensions (getDimensions difficulty)
+                        , time = 0
+                        , mode = Start
+                        , menu = Nothing
+                      }
+                    , Cmd.none
+                    )
 
 
 subscriptions : Model -> Sub Msg
@@ -343,6 +358,9 @@ view model =
         menu =
             case model.menu of
                 Just DifficultyMenu ->
+                    modalView model
+
+                Just (CustomDifficultyMenu _ _ _) ->
                     modalView model
 
                 Nothing ->
@@ -632,15 +650,135 @@ modalView : Model -> Html Msg
 modalView model =
     div maskStyle
         [ modalContent []
-            [ windowsChrome [ style "padding" "0 18px 18px" ]
+            [ windowsChrome [ style "padding" "0 18px 90px" ]
                 [ formGroup "Difficulty"
                     [ radiobutton "Beginner" Beginner model.game
                     , radiobutton "Intermediate" Intermediate model.game
                     , radiobutton "Expert" Expert model.game
+                    , customRadioButton model.menu
                     ]
                 ]
             ]
         ]
+
+
+testDisplay : Maybe Menu -> Html Msg
+testDisplay menu =
+    label [ style "display" "flex", style "align-items" "center" ]
+        [ input
+            [ type_ "radio"
+            , name "value"
+            , onClick (OpenMenu (CustomDifficultyMenu 50 50 50))
+            , checked True
+            , style "margin" "4px 8px"
+            ]
+            []
+        , text "Custom Difficulty"
+        ]
+
+
+radiobutton : String -> Difficulty -> Difficulty -> Html Msg
+radiobutton settingLabel difficulty currentGameDifficulty =
+    let
+        bombCount =
+            getBombCount difficulty
+
+        x =
+            first (getDimensions difficulty)
+
+        y =
+            second (getDimensions difficulty)
+    in
+    label [ style "display" "flex", style "align-items" "center" ]
+        [ input
+            [ type_ "radio"
+            , name "value"
+            , onClick (SetDifficulty difficulty)
+            , checked (difficulty == currentGameDifficulty)
+            , style "margin" "4px 8px"
+            ]
+            []
+        , text settingLabel
+        ]
+
+
+customRadioButton : Maybe Menu -> Html Msg
+customRadioButton currentMenu =
+    let
+        isCustomDifficultyMenu menu2 =
+            case menu2 of
+                CustomDifficultyMenu _ _ _ ->
+                    True
+
+                _ ->
+                    False
+    in
+    case currentMenu of
+        Nothing ->
+            div [] []
+
+        Just menu ->
+            case menu of
+                DifficultyMenu ->
+                    label [ style "display" "flex", style "align-items" "center" ]
+                        [ input
+                            [ type_ "radio"
+                            , name "value"
+                            , onClick (OpenMenu (CustomDifficultyMenu 50 50 50))
+                            , checked (isCustomDifficultyMenu menu)
+                            , style "margin" "4px 8px"
+                            ]
+                            []
+                        , text "Custom Difficulty"
+                        ]
+
+                CustomDifficultyMenu x y z ->
+                    let
+                        handleInput inputString =
+                            case String.toInt inputString of
+                                Nothing ->
+                                    0
+
+                                Just int ->
+                                    int
+                    in
+                    label [ style "display" "flex", style "align-items" "center" ]
+                        [ input
+                            [ type_ "radio"
+                            , name "value"
+                            , onClick (OpenMenu (CustomDifficultyMenu x y z))
+                            , checked (isCustomDifficultyMenu menu)
+                            , style "margin" "4px 8px"
+                            ]
+                            []
+                        , text "Custom Difficulty"
+                        , text "Width"
+                        , input
+                            [ type_ "text"
+                            , value (String.fromInt x)
+                            , onInput (\inputString -> OpenMenu (CustomDifficultyMenu (handleInput inputString) y z))
+                            , style "margin" "4px 8px"
+                            ]
+                            []
+                        , br [] []
+                        , text "Height"
+                        , input
+                            [ type_ "text"
+                            , value (String.fromInt y)
+                            , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x (handleInput inputString) z))
+                            , style "margin" "4px 8px"
+                            ]
+                            []
+                        , br [] []
+                        , text "Bomb Count"
+                        , input
+                            [ type_ "text"
+                            , value (String.fromInt z)
+                            , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x y (handleInput inputString)))
+                            , style "margin" "4px 8px"
+                            ]
+                            []
+                        ]
 
 
 formGroup : String -> List (Html msg) -> Html msg
@@ -673,21 +811,6 @@ modalContent =
         , ( "padding", "10px" )
         , ( "border-radius", "3px" )
         , ( "transform", "translate(-50%, -50%)" )
-        ]
-
-
-radiobutton : String -> Difficulty -> Difficulty -> Html Msg
-radiobutton value difficulty currentGameDifficulty =
-    label [ style "display" "flex", style "align-items" "center" ]
-        [ input
-            [ type_ "radio"
-            , name "value"
-            , onClick (SetDifficulty difficulty)
-            , checked (difficulty == currentGameDifficulty)
-            , style "margin" "4px 8px"
-            ]
-            []
-        , text value
         ]
 
 
