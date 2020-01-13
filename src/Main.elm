@@ -37,14 +37,23 @@ type alias Model =
     }
 
 
-startGame : Model -> Difficulty -> Model
-startGame model difficulty =
-    { model
+startGame : Difficulty -> Model
+startGame difficulty =
+    { initialModel
         | game = difficulty
-        , grid = Grid.fromDimensions (getDimensions difficulty)
-        , time = 0
-        , mode = Start
-        , menu = Nothing
+        , grid = Grid.fromDimensions (getDimensions difficulty)       
+    }
+
+initialModel : Model
+initialModel =
+    { grid = Grid.fromDimensions (getDimensions initialDifficulty)
+    , activeCell = Nothing
+    , pressingFace = False
+    , game = initialDifficulty
+    , time = 0
+    , mode = Start
+    , isRightClicked = False
+    , menu = Nothing
     }
 
 
@@ -97,17 +106,6 @@ initialDifficulty =
     Intermediate
 
 
-initialModel : Model
-initialModel =
-    { grid = Grid.fromDimensions (getDimensions initialDifficulty)
-    , activeCell = Nothing
-    , pressingFace = False
-    , game = initialDifficulty
-    , time = 0
-    , mode = Start
-    , isRightClicked = False
-    , menu = Nothing
-    }
 
 
 type Msg
@@ -290,16 +288,10 @@ update msg model =
         ClearActiveCell ->
             ( { model | activeCell = Nothing }, Cmd.none )
 
-        SetDifficulty difficulty ->
+        SetDifficulty difficulty ->              
             case difficulty of
                 _ ->
-                    ( { model
-                        | game = difficulty
-                        , grid = Grid.fromDimensions (getDimensions difficulty)
-                        , time = 0
-                        , mode = Start
-                        , menu = Nothing
-                      }
+                    ( startGame difficulty
                     , Cmd.none
                     )
 
