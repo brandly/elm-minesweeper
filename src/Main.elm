@@ -278,9 +278,34 @@ update msg model =
             )
 
         OpenMenu menu ->
-            ( { model | menu = Just menu }
-            , Cmd.none
-            )
+            case menu of 
+                DifficultyMenu ->
+                    ( { model | menu = Just menu }, Cmd.none)                                    
+                CustomDifficultyMenu x y z ->
+                    let
+                        reset_x =
+                            if x > 20 then 
+                                20
+                            else if x < 2 then 
+                                2
+                            else
+                                x
+                        reset_z = 
+                            if (z > x*y - 1) then
+                               abs (x * y - 1)
+                            else if z == 0 then
+                                1
+                            else
+                                abs z
+                        reset_y = 
+                            if y > 20 then 
+                                20                            
+                            else if y < 2 then
+                                2
+                            else 
+                                y
+                    in                        
+                    ( { model | menu = Just (CustomDifficultyMenu reset_x reset_y reset_z) }, Cmd.none)
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -716,7 +741,7 @@ customRadioButton currentMenu =
                         [ input
                             [ type_ "radio"
                             , name "value"
-                            , onClick (OpenMenu (CustomDifficultyMenu 50 50 50))
+                            , onClick (OpenMenu (CustomDifficultyMenu 20 20 50))
                             , checked (isCustomDifficultyMenu menu)
                             , style "margin" "4px 8px"
                             ]
@@ -734,7 +759,7 @@ customRadioButton currentMenu =
                                 Just int ->
                                     int
                     in
-                    label [ style "display" "flex", style "align-items" "center" ]
+                    div [ ]
                         [ input
                             [ type_ "radio"
                             , name "value"
@@ -742,8 +767,9 @@ customRadioButton currentMenu =
                             , checked (isCustomDifficultyMenu menu)
                             , style "margin" "4px 8px"
                             ]
-                            []
+                            []                        
                         , text "Custom Difficulty"
+                        , br [][]
                         , text "Width"
                         , input
                             [ type_ "text"
@@ -770,6 +796,8 @@ customRadioButton currentMenu =
                             , style "margin" "4px 8px"
                             ]
                             []
+                        , br [][]
+                        , button [onClick (SetDifficulty (Custom x y z))][text "Ok"]
                         ]
 
 
