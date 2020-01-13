@@ -41,8 +41,9 @@ startGame : Difficulty -> Model
 startGame difficulty =
     { initialModel
         | game = difficulty
-        , grid = Grid.fromDimensions (getDimensions difficulty)       
+        , grid = Grid.fromDimensions (getDimensions difficulty)
     }
+
 
 initialModel : Model
 initialModel =
@@ -104,8 +105,6 @@ getDimensions difficulty =
 initialDifficulty : Difficulty
 initialDifficulty =
     Intermediate
-
-
 
 
 type Msg
@@ -278,34 +277,43 @@ update msg model =
             )
 
         OpenMenu menu ->
-            case menu of 
+            case menu of
                 DifficultyMenu ->
-                    ( { model | menu = Just menu }, Cmd.none)                                    
+                    ( { model | menu = Just menu }, Cmd.none )
+
                 CustomDifficultyMenu x y z ->
                     let
                         reset_x =
-                            if x > 20 then 
+                            if x > 20 then
                                 20
-                            else if x < 2 then 
+
+                            else if x < 2 then
                                 2
+
                             else
                                 x
-                        reset_z = 
-                            if (z > x*y - 1) then
-                               abs (x * y - 1)
+
+                        reset_z =
+                            if z > x * y - 1 then
+                                abs (x * y - 1)
+
                             else if z == 0 then
                                 1
+
                             else
                                 abs z
-                        reset_y = 
-                            if y > 20 then 
-                                20                            
+
+                        reset_y =
+                            if y > 20 then
+                                20
+
                             else if y < 2 then
                                 2
-                            else 
+
+                            else
                                 y
-                    in                        
-                    ( { model | menu = Just (CustomDifficultyMenu reset_x reset_y reset_z) }, Cmd.none)
+                    in
+                    ( { model | menu = Just (CustomDifficultyMenu reset_x reset_y reset_z) }, Cmd.none )
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -313,7 +321,7 @@ update msg model =
         ClearActiveCell ->
             ( { model | activeCell = Nothing }, Cmd.none )
 
-        SetDifficulty difficulty ->              
+        SetDifficulty difficulty ->
             case difficulty of
                 _ ->
                     ( startGame difficulty
@@ -759,7 +767,7 @@ customRadioButton currentMenu =
                                 Just int ->
                                     int
                     in
-                    div [ ]
+                    div []
                         [ input
                             [ type_ "radio"
                             , name "value"
@@ -767,9 +775,9 @@ customRadioButton currentMenu =
                             , checked (isCustomDifficultyMenu menu)
                             , style "margin" "4px 8px"
                             ]
-                            []                        
+                            []
                         , text "Custom Difficulty"
-                        , br [][]
+                        , br [] []
                         , text "Width"
                         , input
                             [ type_ "text"
@@ -796,8 +804,8 @@ customRadioButton currentMenu =
                             , style "margin" "4px 8px"
                             ]
                             []
-                        , br [][]
-                        , button [onClick (SetDifficulty (Custom x y z))][text "Ok"]
+                        , br [] []
+                        , button [ onClick (SetDifficulty (Custom x y z)) ] [ text "Ok" ]
                         ]
 
 
