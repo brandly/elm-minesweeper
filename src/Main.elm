@@ -711,7 +711,7 @@ customRadioButton currentMenu =
                 [ input
                     [ type_ "radio"
                     , name "value"
-                    , onClick (OpenMenu (CustomDifficultyMenu 20 20 50))
+                    , onClick (OpenMenu (CustomDifficultyMenu 9 9 10))
                     , checked (isCustomDifficultyMenu currentMenu)
                     , style "margin" "4px 8px"
                     ]
