@@ -118,6 +118,7 @@ type Msg
     | ClearActiveCell
     | SetDifficulty Difficulty
     | OpenMenu Menu
+    | CloseMenu
 
 
 generateRandomInts : Int -> Grid -> Cmd Msg
@@ -319,6 +320,8 @@ update msg model =
 
         SetDifficulty difficulty ->
             ( startGame difficulty, Cmd.none )
+        CloseMenu ->
+            ( { model | menu = Nothing }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -673,6 +676,7 @@ modalView model menu =
                     , radiobutton "Intermediate" Intermediate model.game
                     , radiobutton "Expert" Expert model.game
                     , customRadioButton menu
+                    , button [ onClick (CloseMenu) ] [ text "Cancel" ] 
                     ]
                 ]
             ]
