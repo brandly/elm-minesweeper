@@ -287,8 +287,8 @@ update msg model =
                             if x > 20 then
                                 20
 
-                            else if x < 2 then
-                                2
+                            else if x < 1 then
+                                1
 
                             else
                                 x
@@ -296,10 +296,6 @@ update msg model =
                         reset_z =
                             if z > x * y - 1 then
                                 abs (x * y - 1)
-
-                            else if z == 0 then
-                                1
-
                             else
                                 abs z
 
@@ -307,8 +303,8 @@ update msg model =
                             if y > 20 then
                                 20
 
-                            else if y < 2 then
-                                2
+                            else if y < 1 then
+                                1
 
                             else
                                 y
