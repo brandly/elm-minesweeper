@@ -321,8 +321,8 @@ update msg model =
         ClearActiveCell ->
             ( { model | activeCell = Nothing }, Cmd.none )
 
-        SetDifficulty difficulty ->            
-            ( startGame difficulty, Cmd.none)
+        SetDifficulty difficulty ->
+            ( startGame difficulty, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -379,10 +379,10 @@ view model =
         menu =
             case model.menu of
                 Just DifficultyMenu ->
-                    modalView model
+                    modalView model DifficultyMenu
 
-                Just (CustomDifficultyMenu _ _ _) ->
-                    modalView model
+                Just (CustomDifficultyMenu x y z) ->
+                    modalView model (CustomDifficultyMenu x y z)
 
                 Nothing ->
                     Element.none
@@ -667,8 +667,8 @@ raisedDiv =
         ]
 
 
-modalView : Model -> Html Msg
-modalView model =
+modalView : Model -> Menu -> Html Msg
+modalView model menu =
     div maskStyle
         [ modalContent []
             [ windowsChrome [ style "padding" "0 18px 90px" ]
@@ -676,7 +676,7 @@ modalView model =
                     [ radiobutton "Beginner" Beginner model.game
                     , radiobutton "Intermediate" Intermediate model.game
                     , radiobutton "Expert" Expert model.game
-                    , customRadioButton model.menu
+                    , customRadioButton menu
                     ]
                 ]
             ]
@@ -698,7 +698,7 @@ radiobutton settingLabel difficulty currentGameDifficulty =
         ]
 
 
-customRadioButton : Maybe Menu -> Html Msg
+customRadioButton : Menu -> Html Msg
 customRadioButton currentMenu =
     let
         isCustomDifficultyMenu menu2 =
@@ -710,74 +710,69 @@ customRadioButton currentMenu =
                     False
     in
     case currentMenu of
-        Nothing ->
-            div [] []
+        DifficultyMenu ->
+            label [ style "display" "flex", style "align-items" "center" ]
+                [ input
+                    [ type_ "radio"
+                    , name "value"
+                    , onClick (OpenMenu (CustomDifficultyMenu 20 20 50))
+                    , checked (isCustomDifficultyMenu currentMenu)
+                    , style "margin" "4px 8px"
+                    ]
+                    []
+                , text "Custom Difficulty"
+                ]
 
-        Just menu ->
-            case menu of
-                DifficultyMenu ->
-                    label [ style "display" "flex", style "align-items" "center" ]
-                        [ input
-                            [ type_ "radio"
-                            , name "value"
-                            , onClick (OpenMenu (CustomDifficultyMenu 20 20 50))
-                            , checked (isCustomDifficultyMenu menu)
-                            , style "margin" "4px 8px"
-                            ]
-                            []
-                        , text "Custom Difficulty"
-                        ]
+        CustomDifficultyMenu x y z ->
+            let
+                handleInput inputString =
+                    case String.toInt inputString of
+                        Nothing ->
+                            0
 
-                CustomDifficultyMenu x y z ->
-                    let
-                        handleInput inputString =
-                            case String.toInt inputString of
-                                Nothing ->
-                                    0
-
-                                Just int ->
-                                    int
-                    in
-                    div []
-                        [ input
-                            [ type_ "radio"
-                            , name "value"
-                            , onClick (OpenMenu (CustomDifficultyMenu x y z))
-                            , checked (isCustomDifficultyMenu menu)
-                            , style "margin" "4px 8px"
-                            ]
-                            []
-                        , text "Custom Difficulty"
-                        , br [] []
-                        , text "Width"
-                        , input
-                            [ type_ "text"
-                            , value (String.fromInt x)
-                            , onInput (\inputString -> OpenMenu (CustomDifficultyMenu (handleInput inputString) y z))
-                            , style "margin" "4px 8px"
-                            ]
-                            []
-                        , br [] []
-                        , text "Height"
-                        , input
-                            [ type_ "text"
-                            , value (String.fromInt y)
-                            , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x (handleInput inputString) z))
-                            , style "margin" "4px 8px"
-                            ]
-                            []
-                        , br [] []
-                        , text "Bomb Count"
-                        , input
-                            [ type_ "text"
-                            , value (String.fromInt z)
-                            , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x y (handleInput inputString)))
-                            , style "margin" "4px 8px"
-                            ]
-                            []
-                        , br [] []
-                        , button [ onClick (SetDifficulty (Custom x y z)) ] [ text "Ok" ]
-                        ]
+                        Just int ->
+                            int
+            in
+            div []
+                [ input
+                    [ type_ "radio"
+                    , name "value"
+                    , onClick (OpenMenu (CustomDifficultyMenu x y z))
+                    , checked (isCustomDifficultyMenu currentMenu)
+                    , style "margin" "4px 8px"
+                    ]
+                    []
+                , text "Custom Difficulty"
+                , br [] []
+                , text "Width"
+                , input
+                    [ type_ "text"
+                    , value (String.fromInt x)
+                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu (handleInput inputString) y z))
+                    , style "margin" "4px 8px"
+                    ]
+                    []
+                , br [] []
+                , text "Height"
+                , input
+                    [ type_ "text"
+                    , value (String.fromInt y)
+                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x (handleInput inputString) z))
+                    , style "margin" "4px 8px"
+                    ]
+                    []
+                , br [] []
+                , text "Bomb Count"
+                , input
+                    [ type_ "text"
+                    , value (String.fromInt z)
+                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x y (handleInput inputString)))
+                    , style "margin" "4px 8px"
+                    ]
+                    []
+                , br [] []
+                , button [ onClick (SetDifficulty (Custom x y z)) ] [ text "Ok" ]
+                ]
 
 
 formGroup : String -> List (Html msg) -> Html msg
