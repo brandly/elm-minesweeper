@@ -321,12 +321,8 @@ update msg model =
         ClearActiveCell ->
             ( { model | activeCell = Nothing }, Cmd.none )
 
-        SetDifficulty difficulty ->
-            case difficulty of
-                _ ->
-                    ( startGame difficulty
-                    , Cmd.none
-                    )
+        SetDifficulty difficulty ->            
+            ( startGame difficulty, Cmd.none)
 
 
 subscriptions : Model -> Sub Msg
@@ -704,16 +700,6 @@ testDisplay menu =
 
 radiobutton : String -> Difficulty -> Difficulty -> Html Msg
 radiobutton settingLabel difficulty currentGameDifficulty =
-    let
-        bombCount =
-            getBombCount difficulty
-
-        x =
-            first (getDimensions difficulty)
-
-        y =
-            second (getDimensions difficulty)
-    in
     label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
