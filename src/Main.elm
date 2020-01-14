@@ -683,21 +683,6 @@ modalView model =
         ]
 
 
-testDisplay : Maybe Menu -> Html Msg
-testDisplay menu =
-    label [ style "display" "flex", style "align-items" "center" ]
-        [ input
-            [ type_ "radio"
-            , name "value"
-            , onClick (OpenMenu (CustomDifficultyMenu 50 50 50))
-            , checked True
-            , style "margin" "4px 8px"
-            ]
-            []
-        , text "Custom Difficulty"
-        ]
-
-
 radiobutton : String -> Difficulty -> Difficulty -> Html Msg
 radiobutton settingLabel difficulty currentGameDifficulty =
     label [ style "display" "flex", style "align-items" "center" ]
