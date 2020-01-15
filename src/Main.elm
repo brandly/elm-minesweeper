@@ -676,11 +676,19 @@ modalView model menu =
 
 radiobutton : String -> Difficulty -> Difficulty -> Html Msg
 radiobutton settingLabel difficulty difficultySettings =
+    let
+        difficultyConverter  =
+          case difficultySettings of
+            Custom x y z ->
+                CustomDifficultyMenu x y z
+
+    in
+        
     label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
             , name "value"
-            , onClick (SetDifficulty difficultySettings)
+            , onClick (OpenMenu difficultyConverter)
             , checked (difficulty == difficultySettings)
             , style "margin" "4px 8px"
             ]
