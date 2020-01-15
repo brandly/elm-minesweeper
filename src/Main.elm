@@ -59,8 +59,7 @@ initialModel =
 
 
 type Difficulty
-    = Beginner
-    | Intermediate
+    = Intermediate
     | Expert
     | Custom Int Int Int
 
@@ -85,9 +84,6 @@ type Menu
 getBombCount : Difficulty -> Int
 getBombCount difficulty =
     case difficulty of
-        Beginner ->
-            10
-
         Intermediate ->
             40
 
@@ -101,9 +97,6 @@ getBombCount difficulty =
 getDimensions : Difficulty -> ( Int, Int )
 getDimensions difficulty =
     case difficulty of
-        Beginner ->
-            ( 9, 9 )
-
         Intermediate ->
             ( 16, 16 )
 
