@@ -64,6 +64,18 @@ type Difficulty
     | Expert
     | Custom Int Int Int
 
+beginnerSettings : Difficulty
+beginnerSettings =
+    Custom 9 9 10
+
+intermediateSettings : Difficulty
+intermediateSettings = 
+    Custom 16 16 40
+
+expertSettings : Difficulty
+expertSettings =
+    Custom 30 16 99
+
 
 type Menu
     = DifficultyMenu
