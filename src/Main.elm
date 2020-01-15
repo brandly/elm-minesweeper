@@ -684,9 +684,9 @@ modalView model menu =
         [ modalContent []
             [ windowsChrome [ style "padding" "0 18px 90px" ]
                 [ formGroup "Difficulty"
-                    [ radiobutton "Beginner" Beginner model.game
-                    , radiobutton "Intermediate" Intermediate model.game
-                    , radiobutton "Expert" Expert model.game
+                    [ radiobutton "Beginner" model.game beginnerSettings
+                    , radiobutton "Intermediate" model.game intermediateSettings
+                    , radiobutton "Expert" model.game expertSettings
                     , customRadioButton menu
                     , button [ onClick (CloseMenu) ] [ text "Cancel" ] 
                     ]
@@ -696,13 +696,13 @@ modalView model menu =
 
 
 radiobutton : String -> Difficulty -> Difficulty -> Html Msg
-radiobutton settingLabel difficulty currentGameDifficulty =
+radiobutton settingLabel difficulty difficultySettings =
     label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
             , name "value"
-            , onClick (SetDifficulty difficulty)
-            , checked (difficulty == currentGameDifficulty)
+            , onClick (SetDifficulty difficultySettings)
+            , checked (difficulty == difficultySettings)
             , style "margin" "4px 8px"
             ]
             []
