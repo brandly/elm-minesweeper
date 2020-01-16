@@ -74,7 +74,7 @@ intermediateSettings =
 
 expertSettings : Difficulty
 expertSettings =
-    Custom 30 16 99
+    Custom 20 16 99
 
 
 type Menu
