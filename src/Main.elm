@@ -112,6 +112,16 @@ difficultyConverter difficulty =
             CustomDifficultyMenu x y z
 
 
+difficultyToMenuEquality : Difficulty -> Menu -> Bool
+difficultyToMenuEquality difficulty menu =
+    case difficulty of
+        Custom x y z ->
+            case menu of 
+                CustomDifficultyMenu x1 y1 z1 ->
+                    x1 == y1 && y == y1 && z == z1
+
+
+
 type Msg
     = MouseUpCell Int Cell
     | MouseDownCell Int Cell
@@ -655,15 +665,15 @@ raisedDiv =
 
 
 modalView : Model -> Menu -> Html Msg
-modalView model menu =
+modalView model currentMenu =
     div maskStyle
         [ modalContent []
             [ windowsChrome [ style "padding" "0 18px 90px" ]
                 [ formGroup "Difficulty"
-                    [ radiobutton "Beginner" menu beginnerSettings
-                    , radiobutton "Intermediate" menu intermediateSettings
-                    , radiobutton "Expert" menu expertSettings
-                    , customRadioButton menu
+                    [ radiobutton "Beginner" currentMenu beginnerSettings
+                    , radiobutton "Intermediate" currentMenu intermediateSettings
+                    , radiobutton "Expert" currentMenu expertSettings
+                    , customRadioButton currentMenu
                     , button [ onClick CloseMenu ] [ text "Cancel" ]
                     ]
                 ]
@@ -672,13 +682,13 @@ modalView model menu =
 
 
 radiobutton : String -> Menu -> Difficulty -> Html Msg
-radiobutton settingLabel menu difficultySettings =
+radiobutton settingLabel currentMenu difficultySettings =
     label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
             , name "value"
             , onClick (OpenMenu (difficultyConverter difficultySettings))
-            , checked (menu == difficultyConverter difficultySettings)
+            , checked (currentMenu == (difficultyConverter difficultySettings) )
             , style "margin" "4px 8px"
             ]
             []
@@ -704,11 +714,12 @@ customRadioButton currentMenu =
                     [ type_ "radio"
                     , name "value"
                     , onClick (OpenMenu (CustomDifficultyMenu x y z))
-                    , checked (currentMenu == CustomDifficultyMenu x y z)
+                    , checked (False )
                     , style "margin" "4px 8px"
                     ]
                     []
-                , text "Custom Difficulty"
+                , 
+                text "....or choose a Custom Difficulty"
                 , br [] []
                 , text "Width"
                 , input
