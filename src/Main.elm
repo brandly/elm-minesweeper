@@ -78,8 +78,7 @@ expertSettings =
 
 
 type Menu
-    = DifficultyMenu
-    | CustomDifficultyMenu Int Int Int
+    = CustomDifficultyMenu Int Int Int
 
 
 getBombCount : Difficulty -> Int
@@ -99,6 +98,18 @@ getDimensions difficulty =
 initialDifficulty : Difficulty
 initialDifficulty =
     intermediateSettings
+
+
+initialDifficultyMenu : Menu
+initialDifficultyMenu =
+    difficultyConverter initialDifficulty
+
+
+difficultyConverter : Difficulty -> Menu
+difficultyConverter difficulty =
+    case difficulty of
+        Custom x y z ->
+            CustomDifficultyMenu x y z
 
 
 type Msg
@@ -273,9 +284,6 @@ update msg model =
 
         OpenMenu menu ->
             case menu of
-                DifficultyMenu ->
-                    ( { model | menu = Just menu }, Cmd.none )
-
                 CustomDifficultyMenu x y z ->
                     let
                         reset_x =
@@ -373,11 +381,8 @@ view model =
 
         menu =
             case model.menu of
-                Just DifficultyMenu ->
-                    modalView model DifficultyMenu
-
-                Just (CustomDifficultyMenu x y z) ->
-                    modalView model (CustomDifficultyMenu x y z)
+                Just customMenu ->
+                    modalView model customMenu
 
                 Nothing ->
                     Element.none
@@ -406,7 +411,7 @@ view model =
             , style "left" "96px"
             ]
             [ viewToolbar []
-                [ toolbarBtn [ onClick (OpenMenu DifficultyMenu) ] [ text "Set Difficulty" ]
+                [ toolbarBtn [ onClick (OpenMenu initialDifficultyMenu) ] [ text "Set Difficulty" ]
                 ]
             , frame []
                 [ viewHeader model.pressingFace
@@ -668,9 +673,9 @@ modalView model menu =
         [ modalContent []
             [ windowsChrome [ style "padding" "0 18px 90px" ]
                 [ formGroup "Difficulty"
-                    [ radiobutton "Beginner" model.game beginnerSettings
-                    , radiobutton "Intermediate" model.game intermediateSettings
-                    , radiobutton "Expert" model.game expertSettings
+                    [ radiobutton "Beginner" menu beginnerSettings
+                    , radiobutton "Intermediate" menu intermediateSettings
+                    , radiobutton "Expert" menu expertSettings
                     , customRadioButton menu
                     , button [ onClick CloseMenu ] [ text "Cancel" ]
                     ]
@@ -679,20 +684,14 @@ modalView model menu =
         ]
 
 
-radiobutton : String -> Difficulty -> Difficulty -> Html Msg
-radiobutton settingLabel difficulty difficultySettings =
-    let
-        difficultyConverter =
-            case difficultySettings of
-                Custom x y z ->
-                    CustomDifficultyMenu x y z
-    in
+radiobutton : String -> Menu -> Difficulty -> Html Msg
+radiobutton settingLabel menu difficultySettings =
     label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
             , name "value"
-            , onClick (OpenMenu difficultyConverter)
-            , checked (difficulty == difficultySettings)
+            , onClick (OpenMenu (difficultyConverter difficultySettings))
+            , checked (menu == difficultyConverter difficultySettings)
             , style "margin" "4px 8px"
             ]
             []
@@ -702,29 +701,7 @@ radiobutton settingLabel difficulty difficultySettings =
 
 customRadioButton : Menu -> Html Msg
 customRadioButton currentMenu =
-    let
-        isCustomDifficultyMenu menu2 =
-            case menu2 of
-                CustomDifficultyMenu _ _ _ ->
-                    True
-
-                _ ->
-                    False
-    in
     case currentMenu of
-        DifficultyMenu ->
-            label [ style "display" "flex", style "align-items" "center" ]
-                [ input
-                    [ type_ "radio"
-                    , name "value"
-                    , onClick (OpenMenu (CustomDifficultyMenu 9 9 10))
-                    , checked (isCustomDifficultyMenu currentMenu)
-                    , style "margin" "4px 8px"
-                    ]
-                    []
-                , text "Custom Difficulty"
-                ]
-
         CustomDifficultyMenu x y z ->
             let
                 handleInput inputString =
@@ -740,7 +717,7 @@ customRadioButton currentMenu =
                     [ type_ "radio"
                     , name "value"
                     , onClick (OpenMenu (CustomDifficultyMenu x y z))
-                    , checked (isCustomDifficultyMenu currentMenu)
+                    , checked (currentMenu == CustomDifficultyMenu x y z)
                     , style "margin" "4px 8px"
                     ]
                     []
