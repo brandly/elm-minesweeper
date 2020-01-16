@@ -61,13 +61,16 @@ initialModel =
 type Difficulty
     = Custom Int Int Int
 
+
 beginnerSettings : Difficulty
 beginnerSettings =
     Custom 9 9 10
 
+
 intermediateSettings : Difficulty
-intermediateSettings = 
+intermediateSettings =
     Custom 16 16 40
+
 
 expertSettings : Difficulty
 expertSettings =
@@ -288,6 +291,7 @@ update msg model =
                         reset_z =
                             if z > x * y - 1 then
                                 abs (x * y - 1)
+
                             else
                                 abs z
 
@@ -311,6 +315,7 @@ update msg model =
 
         SetDifficulty difficulty ->
             ( startGame difficulty, Cmd.none )
+
         CloseMenu ->
             ( { model | menu = Nothing }, Cmd.none )
 
@@ -667,7 +672,7 @@ modalView model menu =
                     , radiobutton "Intermediate" model.game intermediateSettings
                     , radiobutton "Expert" model.game expertSettings
                     , customRadioButton menu
-                    , button [ onClick (CloseMenu) ] [ text "Cancel" ] 
+                    , button [ onClick CloseMenu ] [ text "Cancel" ]
                     ]
                 ]
             ]
@@ -677,13 +682,11 @@ modalView model menu =
 radiobutton : String -> Difficulty -> Difficulty -> Html Msg
 radiobutton settingLabel difficulty difficultySettings =
     let
-        difficultyConverter  =
-          case difficultySettings of
-            Custom x y z ->
-                CustomDifficultyMenu x y z
-
+        difficultyConverter =
+            case difficultySettings of
+                Custom x y z ->
+                    CustomDifficultyMenu x y z
     in
-        
     label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
