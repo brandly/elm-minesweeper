@@ -287,14 +287,7 @@ update msg model =
                 CustomDifficultyMenu x y z ->
                     let
                         reset_x =
-                            if x > 20 then
-                                20
-
-                            else if x < 1 then
-                                1
-
-                            else
-                                x
+                            clamp 1 20 x
 
                         reset_z =
                             if z > x * y - 1 then
@@ -304,14 +297,8 @@ update msg model =
                                 abs z
 
                         reset_y =
-                            if y > 20 then
-                                20
+                            clamp 1 20 y
 
-                            else if y < 1 then
-                                1
-
-                            else
-                                y
                     in
                     ( { model | menu = Just (CustomDifficultyMenu reset_x reset_y reset_z) }, Cmd.none )
 
