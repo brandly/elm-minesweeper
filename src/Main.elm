@@ -78,7 +78,14 @@ expertSettings =
 
 
 type Menu
-    = CustomDifficultyMenu Int Int Int
+    = CustomDifficultyMenu Int Int Int ToggledRadioButton
+
+
+type ToggledRadioButton
+    = ToggleBeginner
+    | ToggleIntermediate
+    | ToggleExpert
+    | ToggleCustom
 
 
 getBombCount : Difficulty -> Int
@@ -102,24 +109,14 @@ initialDifficulty =
 
 initialDifficultyMenu : Menu
 initialDifficultyMenu =
-    difficultyConverter initialDifficulty
+    difficultyConverter initialDifficulty ToggleIntermediate
 
 
-difficultyConverter : Difficulty -> Menu
-difficultyConverter difficulty =
+difficultyConverter : Difficulty -> ToggledRadioButton -> Menu
+difficultyConverter difficulty toggledRadioButton =
     case difficulty of
         Custom x y z ->
-            CustomDifficultyMenu x y z
-
-
-difficultyToMenuEquality : Difficulty -> Menu -> Bool
-difficultyToMenuEquality difficulty menu =
-    case difficulty of
-        Custom x y z ->
-            case menu of 
-                CustomDifficultyMenu x1 y1 z1 ->
-                    x1 == y1 && y == y1 && z == z1
-
+            CustomDifficultyMenu x y z toggledRadioButton
 
 
 type Msg
@@ -294,7 +291,7 @@ update msg model =
 
         OpenMenu menu ->
             case menu of
-                CustomDifficultyMenu x y z ->
+                CustomDifficultyMenu x y z toggledRadioButton ->
                     let
                         reset_x =
                             clamp 1 20 x
@@ -308,9 +305,8 @@ update msg model =
 
                         reset_y =
                             clamp 1 20 y
-
                     in
-                    ( { model | menu = Just (CustomDifficultyMenu reset_x reset_y reset_z) }, Cmd.none )
+                    ( { model | menu = Just (CustomDifficultyMenu reset_x reset_y reset_z toggledRadioButton) }, Cmd.none )
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -670,9 +666,9 @@ modalView model currentMenu =
         [ modalContent []
             [ windowsChrome [ style "padding" "0 18px 90px" ]
                 [ formGroup "Difficulty"
-                    [ radiobutton "Beginner" currentMenu beginnerSettings
-                    , radiobutton "Intermediate" currentMenu intermediateSettings
-                    , radiobutton "Expert" currentMenu expertSettings
+                    [ radiobutton "Beginner" currentMenu beginnerSettings ToggleBeginner
+                    , radiobutton "Intermediate" currentMenu intermediateSettings ToggleIntermediate
+                    , radiobutton "Expert" currentMenu expertSettings ToggleExpert
                     , customRadioButton currentMenu
                     , button [ onClick CloseMenu ] [ text "Cancel" ]
                     ]
@@ -681,25 +677,27 @@ modalView model currentMenu =
         ]
 
 
-radiobutton : String -> Menu -> Difficulty -> Html Msg
-radiobutton settingLabel currentMenu difficultySettings =
-    label [ style "display" "flex", style "align-items" "center" ]
-        [ input
-            [ type_ "radio"
-            , name "value"
-            , onClick (OpenMenu (difficultyConverter difficultySettings))
-            , checked (currentMenu == (difficultyConverter difficultySettings) )
-            , style "margin" "4px 8px"
-            ]
-            []
-        , text settingLabel
-        ]
+radiobutton : String -> Menu -> Difficulty -> ToggledRadioButton -> Html Msg
+radiobutton settingLabel currentMenu difficultySettings toggledRadioButton =
+    case currentMenu of
+        CustomDifficultyMenu x y z currentToggle ->
+            label [ style "display" "flex", style "align-items" "center" ]
+                [ input
+                    [ type_ "radio"
+                    , name "value"
+                    , onClick (OpenMenu (difficultyConverter difficultySettings toggledRadioButton))
+                    , checked (currentToggle == toggledRadioButton)
+                    , style "margin" "4px 8px"
+                    ]
+                    []
+                , text settingLabel
+                ]
 
 
 customRadioButton : Menu -> Html Msg
 customRadioButton currentMenu =
     case currentMenu of
-        CustomDifficultyMenu x y z ->
+        CustomDifficultyMenu x y z toggledRadioButton ->
             let
                 handleInput inputString =
                     case String.toInt inputString of
@@ -710,22 +708,23 @@ customRadioButton currentMenu =
                             int
             in
             div []
-                [ input
-                    [ type_ "radio"
-                    , name "value"
-                    , onClick (OpenMenu (CustomDifficultyMenu x y z))
-                    , checked (False )
-                    , style "margin" "4px 8px"
+                [ label [ style "display" "flex", style "align-items" "center" ]
+                    [ input
+                        [ type_ "radio"
+                        , name "value"
+                        , onClick (OpenMenu (CustomDifficultyMenu x y z ToggleCustom))
+                        , checked (toggledRadioButton == ToggleCustom)
+                        , style "margin" "4px 8px"
+                        ]
+                        []
+                    , text "....or choose a Custom Difficulty"
                     ]
-                    []
-                , 
-                text "....or choose a Custom Difficulty"
                 , br [] []
                 , text "Width"
                 , input
                     [ type_ "text"
                     , value (String.fromInt x)
-                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu (handleInput inputString) y z))
+                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu (handleInput inputString) y z ToggleCustom))
                     , style "margin" "4px 8px"
                     ]
                     []
@@ -734,7 +733,7 @@ customRadioButton currentMenu =
                 , input
                     [ type_ "text"
                     , value (String.fromInt y)
-                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x (handleInput inputString) z))
+                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x (handleInput inputString) z ToggleCustom))
                     , style "margin" "4px 8px"
                     ]
                     []
@@ -743,7 +742,7 @@ customRadioButton currentMenu =
                 , input
                     [ type_ "text"
                     , value (String.fromInt z)
-                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x y (handleInput inputString)))
+                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x y (handleInput inputString) ToggleCustom))
                     , style "margin" "4px 8px"
                     ]
                     []
