@@ -713,7 +713,7 @@ radiobutton settingLabel isSelected difficulty =
 
 
 viewCustomFields : Bool -> GridProperties -> Html MenuMsg
-viewCustomFields enabled fields =
+viewCustomFields enabled ({ width, height, bombs } as fields) =
     let
         toInput num onInput_ =
             input
@@ -730,17 +730,27 @@ viewCustomFields enabled fields =
                 []
     in
     div []
-        [ toInput fields.width
+        [ toInput width
             (\num ->
-                SetDifficulty (Custom { fields | width = num })
+                SetDifficulty (Custom { fields | width = clamp 1 20 num })
             )
-        , toInput fields.height
+        , toInput height
             (\num ->
-                SetDifficulty (Custom { fields | height = num })
+                SetDifficulty (Custom { fields | height = clamp 1 20 num })
             )
-        , toInput fields.bombs
+        , toInput bombs
             (\num ->
-                SetDifficulty (Custom { fields | bombs = num })
+                SetDifficulty
+                    (Custom
+                        { fields
+                            | bombs =
+                                if num > width * height - 1 then
+                                    abs (width * height - 1)
+
+                                else
+                                    abs num
+                        }
+                    )
             )
         ]
 
