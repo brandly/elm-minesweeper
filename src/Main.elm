@@ -62,12 +62,16 @@ type Difficulty
     = Beginner
     | Intermediate
     | Expert
-    | Custom Int Int Int
+    | Custom GridProperties
+
+
+type alias GridProperties =
+    { width : Int, height : Int, bombs : Int }
 
 
 isCustom difficulty =
     case difficulty of
-        Custom _ _ _ ->
+        Custom _ ->
             True
 
         _ ->
@@ -75,7 +79,7 @@ isCustom difficulty =
 
 
 type Menu
-    = DifficultyMenu Difficulty Int Int Int
+    = DifficultyMenu Difficulty GridProperties
 
 
 getBombCount : Difficulty -> Int
@@ -90,8 +94,8 @@ getBombCount difficulty =
         Expert ->
             99
 
-        Custom _ _ count ->
-            count
+        Custom { bombs } ->
+            bombs
 
 
 getDimensions : Difficulty -> ( Int, Int )
@@ -106,8 +110,8 @@ getDimensions difficulty =
         Expert ->
             ( 30, 16 )
 
-        Custom x y _ ->
-            ( x, y )
+        Custom { width, height } ->
+            ( width, height )
 
 
 initialDifficulty : Difficulty
@@ -285,7 +289,16 @@ update msg model =
             )
 
         OpenMenu difficulty ->
-            ( { model | menu = Just (DifficultyMenu difficulty 0 0 0) }, Cmd.none )
+            let
+                fields =
+                    case difficulty of
+                        Custom properties ->
+                            properties
+
+                        _ ->
+                            { width = 5, height = 5, bombs = 5 }
+            in
+            ( { model | menu = Just (DifficultyMenu difficulty fields) }, Cmd.none )
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -641,7 +654,7 @@ raisedDiv =
 
 
 modalView : Model -> Menu -> Html Msg
-modalView model (DifficultyMenu difficulty x y bombCount) =
+modalView model (DifficultyMenu difficulty fields) =
     div maskStyle
         [ modalContent []
             [ windowsChrome [ style "padding" "0 18px 90px" ]
@@ -649,7 +662,7 @@ modalView model (DifficultyMenu difficulty x y bombCount) =
                     [ radiobutton "Beginner" (difficulty == Beginner) Beginner
                     , radiobutton "Intermediate" (difficulty == Intermediate) Intermediate
                     , radiobutton "Expert" (difficulty == Expert) Expert
-                    , radiobutton "Custom" (isCustom difficulty) (Custom x y bombCount)
+                    , radiobutton "Custom" (isCustom difficulty) (Custom fields)
                     , button [ onClick (CloseMenu (Just difficulty)) ] [ text "OK" ]
                     , button [ onClick (CloseMenu Nothing) ] [ text "Cancel" ]
                     ]
