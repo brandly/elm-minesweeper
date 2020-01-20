@@ -7,7 +7,7 @@ import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(..), Grid)
 import Html exposing (Html, br, button, div, h1, input, label, p, text)
-import Html.Attributes exposing (checked, name, placeholder, style, type_, value)
+import Html.Attributes exposing (checked, disabled, name, placeholder, style, type_, value)
 import Html.Events exposing (custom, onClick, onInput, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
 import Json.Decode as Json
 import Random
@@ -78,10 +78,6 @@ isCustom difficulty =
             False
 
 
-type Menu
-    = DifficultyMenu Difficulty GridProperties
-
-
 getBombCount : Difficulty -> Int
 getBombCount difficulty =
     case difficulty of
@@ -129,6 +125,7 @@ type Msg
     | ArmRandomCells (List Int)
     | ClearActiveCell
     | OpenMenu Difficulty
+    | MenuMsg MenuMsg
     | CloseMenu (Maybe Difficulty)
 
 
@@ -288,6 +285,12 @@ update msg model =
             , Cmd.none
             )
 
+        TimeSecond _ ->
+            ( { model | time = model.time + 1 }, Cmd.none )
+
+        ClearActiveCell ->
+            ( { model | activeCell = Nothing }, Cmd.none )
+
         OpenMenu difficulty ->
             let
                 fields =
@@ -300,11 +303,8 @@ update msg model =
             in
             ( { model | menu = Just (DifficultyMenu difficulty fields) }, Cmd.none )
 
-        TimeSecond _ ->
-            ( { model | time = model.time + 1 }, Cmd.none )
-
-        ClearActiveCell ->
-            ( { model | activeCell = Nothing }, Cmd.none )
+        MenuMsg msg_ ->
+            ( { model | menu = Maybe.map (updateMenu msg_) model.menu }, Cmd.none )
 
         CloseMenu (Just difficulty) ->
             ( startGame difficulty, Cmd.none )
@@ -367,7 +367,7 @@ view model =
         menu =
             case model.menu of
                 Just customMenu ->
-                    modalView model customMenu
+                    viewModal model customMenu
 
                 Nothing ->
                     Element.none
@@ -653,16 +653,42 @@ raisedDiv =
         ]
 
 
-modalView : Model -> Menu -> Html Msg
-modalView model (DifficultyMenu difficulty fields) =
-    div maskStyle
-        [ modalContent []
-            [ windowsChrome [ style "padding" "0 18px 90px" ]
-                [ formGroup "Difficulty"
+type Menu
+    = DifficultyMenu Difficulty GridProperties
+
+
+type MenuMsg
+    = SetDifficulty Difficulty
+
+
+updateMenu : MenuMsg -> Menu -> Menu
+updateMenu msg (DifficultyMenu difficulty fields) =
+    case msg of
+        SetDifficulty (Custom properties) ->
+            DifficultyMenu (Custom properties) properties
+
+        SetDifficulty d ->
+            DifficultyMenu d fields
+
+
+viewModal : Model -> Menu -> Html Msg
+viewModal model (DifficultyMenu difficulty fields) =
+    let
+        menuContent =
+            Html.map MenuMsg <|
+                div []
                     [ radiobutton "Beginner" (difficulty == Beginner) Beginner
                     , radiobutton "Intermediate" (difficulty == Intermediate) Intermediate
                     , radiobutton "Expert" (difficulty == Expert) Expert
                     , radiobutton "Custom" (isCustom difficulty) (Custom fields)
+                    , viewCustomFields (isCustom difficulty) fields
+                    ]
+    in
+    div maskStyle
+        [ modalContent []
+            [ windowsChrome [ style "padding" "0 18px 90px" ]
+                [ formGroup "Difficulty"
+                    [ menuContent
                     , button [ onClick (CloseMenu (Just difficulty)) ] [ text "OK" ]
                     , button [ onClick (CloseMenu Nothing) ] [ text "Cancel" ]
                     ]
@@ -671,15 +697,13 @@ modalView model (DifficultyMenu difficulty fields) =
         ]
 
 
-radiobutton : String -> Bool -> Difficulty -> Html Msg
+radiobutton : String -> Bool -> Difficulty -> Html MenuMsg
 radiobutton settingLabel isSelected difficulty =
     label [ style "display" "flex", style "align-items" "center" ]
         [ input
             [ type_ "radio"
             , name "value"
-
-            -- TODO: probably a different msg like "MenuSelect"
-            , onClick (OpenMenu difficulty)
+            , onClick (SetDifficulty difficulty)
             , checked isSelected
             , style "margin" "4px 8px"
             ]
@@ -688,61 +712,37 @@ radiobutton settingLabel isSelected difficulty =
         ]
 
 
-
---customRadioButton : Menu -> Html Msg
---customRadioButton currentMenu =
---    case currentMenu of
---        CustomDifficultyMenu x y z toggledRadioButton ->
---            let
---                handleInput inputString =
---                    case String.toInt inputString of
---                        Nothing ->
---                            0
---                        Just int ->
---                            int
---            in
---            div []
---                [ label [ style "display" "flex", style "align-items" "center" ]
---                    [ input
---                        [ type_ "radio"
---                        , name "value"
---                        , onClick (OpenMenu (CustomDifficultyMenu x y z ToggleCustom))
---                        , checked (toggledRadioButton == ToggleCustom)
---                        , style "margin" "4px 8px"
---                        ]
---                        []
---                    , text "....or choose a Custom Difficulty"
---                    ]
---                , br [] []
---                , text "Width"
---                , input
---                    [ type_ "text"
---                    , value (String.fromInt x)
---                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu (handleInput inputString) y z ToggleCustom))
---                    , style "margin" "4px 8px"
---                    ]
---                    []
---                , br [] []
---                , text "Height"
---                , input
---                    [ type_ "text"
---                    , value (String.fromInt y)
---                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x (handleInput inputString) z ToggleCustom))
---                    , style "margin" "4px 8px"
---                    ]
---                    []
---                , br [] []
---                , text "Bomb Count"
---                , input
---                    [ type_ "text"
---                    , value (String.fromInt z)
---                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x y (handleInput inputString) ToggleCustom))
---                    , style "margin" "4px 8px"
---                    ]
---                    []
---                , br [] []
---                , button [ onClick (SetDifficulty (Custom x y z)) ] [ text "Ok" ]
---                ]
+viewCustomFields : Bool -> GridProperties -> Html MenuMsg
+viewCustomFields enabled fields =
+    let
+        toInput num onInput_ =
+            input
+                [ type_ "number"
+                , value (String.fromInt num)
+                , onInput
+                    (String.toInt
+                        >> Maybe.withDefault 0
+                        >> onInput_
+                    )
+                , style "margin" "4px 8px"
+                , disabled (not enabled)
+                ]
+                []
+    in
+    div []
+        [ toInput fields.width
+            (\num ->
+                SetDifficulty (Custom { fields | width = num })
+            )
+        , toInput fields.height
+            (\num ->
+                SetDifficulty (Custom { fields | height = num })
+            )
+        , toInput fields.bombs
+            (\num ->
+                SetDifficulty (Custom { fields | bombs = num })
+            )
+        ]
 
 
 formGroup : String -> List (Html msg) -> Html msg
