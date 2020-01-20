@@ -59,38 +59,37 @@ initialModel =
 
 
 type Difficulty
-    = Custom Int Int Int
+    = Beginner
+    | Intermediate
+    | Expert
+    | Custom Int Int Int
 
 
-beginnerSettings : Difficulty
-beginnerSettings =
-    Custom 9 9 10
+isCustom difficulty =
+    case difficulty of
+        Custom _ _ _ ->
+            True
 
-
-intermediateSettings : Difficulty
-intermediateSettings =
-    Custom 16 16 40
-
-
-expertSettings : Difficulty
-expertSettings =
-    Custom 20 16 99
+        _ ->
+            False
 
 
 type Menu
-    = CustomDifficultyMenu Int Int Int ToggledRadioButton
-
-
-type ToggledRadioButton
-    = ToggleBeginner
-    | ToggleIntermediate
-    | ToggleExpert
-    | ToggleCustom
+    = DifficultyMenu Difficulty Int Int Int
 
 
 getBombCount : Difficulty -> Int
 getBombCount difficulty =
     case difficulty of
+        Beginner ->
+            10
+
+        Intermediate ->
+            40
+
+        Expert ->
+            99
+
         Custom _ _ count ->
             count
 
@@ -98,25 +97,22 @@ getBombCount difficulty =
 getDimensions : Difficulty -> ( Int, Int )
 getDimensions difficulty =
     case difficulty of
+        Beginner ->
+            ( 9, 9 )
+
+        Intermediate ->
+            ( 16, 16 )
+
+        Expert ->
+            ( 30, 16 )
+
         Custom x y _ ->
             ( x, y )
 
 
 initialDifficulty : Difficulty
 initialDifficulty =
-    intermediateSettings
-
-
-initialDifficultyMenu : Menu
-initialDifficultyMenu =
-    difficultyConverter initialDifficulty ToggleIntermediate
-
-
-difficultyConverter : Difficulty -> ToggledRadioButton -> Menu
-difficultyConverter difficulty toggledRadioButton =
-    case difficulty of
-        Custom x y z ->
-            CustomDifficultyMenu x y z toggledRadioButton
+    Intermediate
 
 
 type Msg
@@ -128,9 +124,8 @@ type Msg
     | TimeSecond Time.Posix
     | ArmRandomCells (List Int)
     | ClearActiveCell
-    | SetDifficulty Difficulty
-    | OpenMenu Menu
-    | CloseMenu
+    | OpenMenu Difficulty
+    | CloseMenu (Maybe Difficulty)
 
 
 generateRandomInts : Int -> Grid -> Cmd Msg
@@ -289,24 +284,8 @@ update msg model =
             , Cmd.none
             )
 
-        OpenMenu menu ->
-            case menu of
-                CustomDifficultyMenu x y z toggledRadioButton ->
-                    let
-                        reset_x =
-                            clamp 1 20 x
-
-                        reset_z =
-                            if z > x * y - 1 then
-                                abs (x * y - 1)
-
-                            else
-                                abs z
-
-                        reset_y =
-                            clamp 1 20 y
-                    in
-                    ( { model | menu = Just (CustomDifficultyMenu reset_x reset_y reset_z toggledRadioButton) }, Cmd.none )
+        OpenMenu difficulty ->
+            ( { model | menu = Just (DifficultyMenu difficulty 0 0 0) }, Cmd.none )
 
         TimeSecond _ ->
             ( { model | time = model.time + 1 }, Cmd.none )
@@ -314,10 +293,10 @@ update msg model =
         ClearActiveCell ->
             ( { model | activeCell = Nothing }, Cmd.none )
 
-        SetDifficulty difficulty ->
+        CloseMenu (Just difficulty) ->
             ( startGame difficulty, Cmd.none )
 
-        CloseMenu ->
+        CloseMenu Nothing ->
             ( { model | menu = Nothing }, Cmd.none )
 
 
@@ -351,7 +330,6 @@ view model =
                 , ( "padding", "5px" )
                 ]
 
-        hasActiveCell : Bool
         hasActiveCell =
             isJust model.activeCell
 
@@ -364,7 +342,8 @@ view model =
             case model.activeCell of
                 Just cell ->
                     if model.isRightClicked && cell.state == Exposed then
-                        Grid.getNeighbors cell model.grid |> List.filter (\c -> c.state == Initial)
+                        Grid.getNeighbors cell model.grid
+                            |> List.filter (\c -> c.state == Initial)
 
                     else
                         []
@@ -404,7 +383,8 @@ view model =
             , style "left" "96px"
             ]
             [ viewToolbar []
-                [ toolbarBtn [ onClick (OpenMenu initialDifficultyMenu) ] [ text "Set Difficulty" ]
+                [ toolbarBtn [ onClick (OpenMenu model.game) ]
+                    [ text "Set Difficulty" ]
                 ]
             , frame []
                 [ viewHeader model.pressingFace
@@ -661,94 +641,95 @@ raisedDiv =
 
 
 modalView : Model -> Menu -> Html Msg
-modalView model currentMenu =
+modalView model (DifficultyMenu difficulty x y bombCount) =
     div maskStyle
         [ modalContent []
             [ windowsChrome [ style "padding" "0 18px 90px" ]
                 [ formGroup "Difficulty"
-                    [ radiobutton "Beginner" currentMenu beginnerSettings ToggleBeginner
-                    , radiobutton "Intermediate" currentMenu intermediateSettings ToggleIntermediate
-                    , radiobutton "Expert" currentMenu expertSettings ToggleExpert
-                    , customRadioButton currentMenu
-                    , button [ onClick CloseMenu ] [ text "Cancel" ]
+                    [ radiobutton "Beginner" (difficulty == Beginner) Beginner
+                    , radiobutton "Intermediate" (difficulty == Intermediate) Intermediate
+                    , radiobutton "Expert" (difficulty == Expert) Expert
+                    , radiobutton "Custom" (isCustom difficulty) (Custom x y bombCount)
+                    , button [ onClick (CloseMenu (Just difficulty)) ] [ text "OK" ]
+                    , button [ onClick (CloseMenu Nothing) ] [ text "Cancel" ]
                     ]
                 ]
             ]
         ]
 
 
-radiobutton : String -> Menu -> Difficulty -> ToggledRadioButton -> Html Msg
-radiobutton settingLabel currentMenu difficultySettings toggledRadioButton =
-    case currentMenu of
-        CustomDifficultyMenu x y z currentToggle ->
-            label [ style "display" "flex", style "align-items" "center" ]
-                [ input
-                    [ type_ "radio"
-                    , name "value"
-                    , onClick (OpenMenu (difficultyConverter difficultySettings toggledRadioButton))
-                    , checked (currentToggle == toggledRadioButton)
-                    , style "margin" "4px 8px"
-                    ]
-                    []
-                , text settingLabel
-                ]
+radiobutton : String -> Bool -> Difficulty -> Html Msg
+radiobutton settingLabel isSelected difficulty =
+    label [ style "display" "flex", style "align-items" "center" ]
+        [ input
+            [ type_ "radio"
+            , name "value"
+
+            -- TODO: probably a different msg like "MenuSelect"
+            , onClick (OpenMenu difficulty)
+            , checked isSelected
+            , style "margin" "4px 8px"
+            ]
+            []
+        , text settingLabel
+        ]
 
 
-customRadioButton : Menu -> Html Msg
-customRadioButton currentMenu =
-    case currentMenu of
-        CustomDifficultyMenu x y z toggledRadioButton ->
-            let
-                handleInput inputString =
-                    case String.toInt inputString of
-                        Nothing ->
-                            0
 
-                        Just int ->
-                            int
-            in
-            div []
-                [ label [ style "display" "flex", style "align-items" "center" ]
-                    [ input
-                        [ type_ "radio"
-                        , name "value"
-                        , onClick (OpenMenu (CustomDifficultyMenu x y z ToggleCustom))
-                        , checked (toggledRadioButton == ToggleCustom)
-                        , style "margin" "4px 8px"
-                        ]
-                        []
-                    , text "....or choose a Custom Difficulty"
-                    ]
-                , br [] []
-                , text "Width"
-                , input
-                    [ type_ "text"
-                    , value (String.fromInt x)
-                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu (handleInput inputString) y z ToggleCustom))
-                    , style "margin" "4px 8px"
-                    ]
-                    []
-                , br [] []
-                , text "Height"
-                , input
-                    [ type_ "text"
-                    , value (String.fromInt y)
-                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x (handleInput inputString) z ToggleCustom))
-                    , style "margin" "4px 8px"
-                    ]
-                    []
-                , br [] []
-                , text "Bomb Count"
-                , input
-                    [ type_ "text"
-                    , value (String.fromInt z)
-                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x y (handleInput inputString) ToggleCustom))
-                    , style "margin" "4px 8px"
-                    ]
-                    []
-                , br [] []
-                , button [ onClick (SetDifficulty (Custom x y z)) ] [ text "Ok" ]
-                ]
+--customRadioButton : Menu -> Html Msg
+--customRadioButton currentMenu =
+--    case currentMenu of
+--        CustomDifficultyMenu x y z toggledRadioButton ->
+--            let
+--                handleInput inputString =
+--                    case String.toInt inputString of
+--                        Nothing ->
+--                            0
+--                        Just int ->
+--                            int
+--            in
+--            div []
+--                [ label [ style "display" "flex", style "align-items" "center" ]
+--                    [ input
+--                        [ type_ "radio"
+--                        , name "value"
+--                        , onClick (OpenMenu (CustomDifficultyMenu x y z ToggleCustom))
+--                        , checked (toggledRadioButton == ToggleCustom)
+--                        , style "margin" "4px 8px"
+--                        ]
+--                        []
+--                    , text "....or choose a Custom Difficulty"
+--                    ]
+--                , br [] []
+--                , text "Width"
+--                , input
+--                    [ type_ "text"
+--                    , value (String.fromInt x)
+--                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu (handleInput inputString) y z ToggleCustom))
+--                    , style "margin" "4px 8px"
+--                    ]
+--                    []
+--                , br [] []
+--                , text "Height"
+--                , input
+--                    [ type_ "text"
+--                    , value (String.fromInt y)
+--                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x (handleInput inputString) z ToggleCustom))
+--                    , style "margin" "4px 8px"
+--                    ]
+--                    []
+--                , br [] []
+--                , text "Bomb Count"
+--                , input
+--                    [ type_ "text"
+--                    , value (String.fromInt z)
+--                    , onInput (\inputString -> OpenMenu (CustomDifficultyMenu x y (handleInput inputString) ToggleCustom))
+--                    , style "margin" "4px 8px"
+--                    ]
+--                    []
+--                , br [] []
+--                , button [ onClick (SetDifficulty (Custom x y z)) ] [ text "Ok" ]
+--                ]
 
 
 formGroup : String -> List (Html msg) -> Html msg
