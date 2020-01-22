@@ -731,6 +731,13 @@ viewCustomFields enabled ({ width, height, bombs } as fields) =
                 , disabled (not enabled)
                 ]
                 []
+
+        clampBombs num =
+            if num > width * height - 1 then
+                abs (width * height - 1)
+
+            else
+                abs num
     in
     div []
         [ toInput width
@@ -743,17 +750,7 @@ viewCustomFields enabled ({ width, height, bombs } as fields) =
             )
         , toInput bombs
             (\num ->
-                SetDifficulty
-                    (Custom
-                        { fields
-                            | bombs =
-                                if num > width * height - 1 then
-                                    abs (width * height - 1)
-
-                                else
-                                    abs num
-                        }
-                    )
+                SetDifficulty (Custom { fields | bombs = clampBombs num })
             )
         ]
 
