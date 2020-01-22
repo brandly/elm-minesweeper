@@ -6,13 +6,12 @@ import Browser
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(..), Grid)
-import Html exposing (Html, br, button, div, h1, input, label, p, text)
-import Html.Attributes exposing (checked, disabled, name, placeholder, style, type_, value)
+import Html exposing (Html, button, div, input, label, p, text)
+import Html.Attributes exposing (checked, disabled, name, style, type_, value)
 import Html.Events exposing (custom, onClick, onInput, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
 import Json.Decode as Json
 import Random
 import Time
-import Tuple exposing (first, second)
 
 
 main : Program () Model Msg
@@ -29,7 +28,7 @@ type alias Model =
     { grid : Grid
     , activeCell : Maybe Cell
     , pressingFace : Bool
-    , game : Difficulty
+    , difficulty : Difficulty
     , time : Int
     , mode : GameMode
     , isRightClicked : Bool
@@ -40,7 +39,7 @@ type alias Model =
 startGame : Difficulty -> Model
 startGame difficulty =
     { initialModel
-        | game = difficulty
+        | difficulty = difficulty
         , grid = Grid.fromDimensions (getDimensions difficulty)
     }
 
@@ -50,7 +49,7 @@ initialModel =
     { grid = Grid.fromDimensions (getDimensions initialDifficulty)
     , activeCell = Nothing
     , pressingFace = False
-    , game = initialDifficulty
+    , difficulty = initialDifficulty
     , time = 0
     , mode = Start
     , isRightClicked = False
@@ -66,9 +65,13 @@ type Difficulty
 
 
 type alias GridProperties =
-    { width : Int, height : Int, bombs : Int }
+    { width : Int
+    , height : Int
+    , bombs : Int
+    }
 
 
+isCustom : Difficulty -> Bool
 isCustom difficulty =
     case difficulty of
         Custom _ ->
@@ -201,7 +204,7 @@ update msg model =
                             , isRightClicked = False
                           }
                         , if model.mode == Start then
-                            generateRandomInts (getBombCount model.game) grid
+                            generateRandomInts (getBombCount model.difficulty) grid
 
                           else
                             Cmd.none
@@ -245,7 +248,7 @@ update msg model =
                     Grid.totalBombs grid
 
                 desiredBombCount =
-                    getBombCount model.game
+                    getBombCount model.difficulty
             in
             if bombCount < desiredBombCount then
                 ( { model | grid = grid }
@@ -278,7 +281,7 @@ update msg model =
 
         ClickFace ->
             ( { model
-                | grid = Grid.fromDimensions (getDimensions model.game)
+                | grid = Grid.fromDimensions (getDimensions model.difficulty)
                 , time = 0
                 , mode = Start
               }
@@ -367,7 +370,7 @@ view model =
         menu =
             case model.menu of
                 Just customMenu ->
-                    viewModal model customMenu
+                    viewModal customMenu
 
                 Nothing ->
                     Element.none
@@ -396,13 +399,13 @@ view model =
             , style "left" "96px"
             ]
             [ viewToolbar []
-                [ toolbarBtn [ onClick (OpenMenu model.game) ]
+                [ toolbarBtn [ onClick (OpenMenu model.difficulty) ]
                     [ text "Set Difficulty" ]
                 ]
             , frame []
                 [ viewHeader model.pressingFace
                     hasActiveCell
-                    (getBombCount model.game - flaggedCount)
+                    (getBombCount model.difficulty - flaggedCount)
                     model.time
                     model.mode
                 , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
@@ -662,7 +665,7 @@ type MenuMsg
 
 
 updateMenu : MenuMsg -> Menu -> Menu
-updateMenu msg (DifficultyMenu difficulty fields) =
+updateMenu msg (DifficultyMenu _ fields) =
     case msg of
         SetDifficulty (Custom properties) ->
             DifficultyMenu (Custom properties) properties
@@ -671,8 +674,8 @@ updateMenu msg (DifficultyMenu difficulty fields) =
             DifficultyMenu d fields
 
 
-viewModal : Model -> Menu -> Html Msg
-viewModal model (DifficultyMenu difficulty fields) =
+viewModal : Menu -> Html Msg
+viewModal (DifficultyMenu difficulty fields) =
     let
         menuContent =
             Html.map MenuMsg <|
