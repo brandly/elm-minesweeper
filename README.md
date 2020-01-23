@@ -1,3 +1,11 @@
+# Demo:
+
+**Live Demo:** https://brandly.github.io/elm-minesweeper/
+
+**Screenshot**: 
+
+![Alt text](src//images/screenshot.png?raw=true "Screenshot of Minesweeper")
+
 # elm-minesweeper
 
 Set up.

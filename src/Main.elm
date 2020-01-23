@@ -6,9 +6,9 @@ import Browser
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(..), Grid)
-import Html exposing (Html, button, div, h1, input, label, p, text)
-import Html.Attributes exposing (checked, name, style, type_)
-import Html.Events exposing (custom, onClick, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
+import Html exposing (Html, button, div, input, label, p, text)
+import Html.Attributes exposing (checked, disabled, name, style, type_, value)
+import Html.Events exposing (custom, onClick, onInput, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
 import Json.Decode as Json
 import Random
 import Time
@@ -28,7 +28,7 @@ type alias Model =
     { grid : Grid
     , activeCell : Maybe Cell
     , pressingFace : Bool
-    , game : Difficulty
+    , difficulty : Difficulty
     , time : Int
     , mode : GameMode
     , isRightClicked : Bool
@@ -36,15 +36,49 @@ type alias Model =
     }
 
 
+startGame : Difficulty -> Model
+startGame difficulty =
+    { initialModel
+        | difficulty = difficulty
+        , grid = Grid.fromDimensions (getDimensions difficulty)
+    }
+
+
+initialModel : Model
+initialModel =
+    { grid = Grid.fromDimensions (getDimensions initialDifficulty)
+    , activeCell = Nothing
+    , pressingFace = False
+    , difficulty = initialDifficulty
+    , time = 0
+    , mode = Start
+    , isRightClicked = False
+    , menu = Nothing
+    }
+
+
 type Difficulty
     = Beginner
     | Intermediate
     | Expert
-    | Custom Int Int Int
+    | Custom GridProperties
 
 
-type Menu
-    = DifficultyMenu
+type alias GridProperties =
+    { width : Int
+    , height : Int
+    , bombs : Int
+    }
+
+
+isCustom : Difficulty -> Bool
+isCustom difficulty =
+    case difficulty of
+        Custom _ ->
+            True
+
+        _ ->
+            False
 
 
 getBombCount : Difficulty -> Int
@@ -59,8 +93,8 @@ getBombCount difficulty =
         Expert ->
             99
 
-        Custom _ _ count ->
-            count
+        Custom { bombs } ->
+            bombs
 
 
 getDimensions : Difficulty -> ( Int, Int )
@@ -75,26 +109,13 @@ getDimensions difficulty =
         Expert ->
             ( 30, 16 )
 
-        Custom x y _ ->
-            ( x, y )
+        Custom { width, height } ->
+            ( width, height )
 
 
 initialDifficulty : Difficulty
 initialDifficulty =
     Intermediate
-
-
-initialModel : Model
-initialModel =
-    { grid = Grid.fromDimensions (getDimensions initialDifficulty)
-    , activeCell = Nothing
-    , pressingFace = False
-    , game = initialDifficulty
-    , time = 0
-    , mode = Start
-    , isRightClicked = False
-    , menu = Nothing
-    }
 
 
 type Msg
@@ -106,8 +127,9 @@ type Msg
     | TimeSecond Time.Posix
     | ArmRandomCells (List Int)
     | ClearActiveCell
-    | SetDifficulty Difficulty
-    | OpenMenu Menu
+    | OpenMenu Difficulty
+    | MenuMsg MenuMsg
+    | CloseMenu (Maybe Difficulty)
 
 
 generateRandomInts : Int -> Grid -> Cmd Msg
@@ -182,7 +204,7 @@ update msg model =
                             , isRightClicked = False
                           }
                         , if model.mode == Start then
-                            generateRandomInts (getBombCount model.game) grid
+                            generateRandomInts (getBombCount model.difficulty) grid
 
                           else
                             Cmd.none
@@ -226,7 +248,7 @@ update msg model =
                     Grid.totalBombs grid
 
                 desiredBombCount =
-                    getBombCount model.game
+                    getBombCount model.difficulty
             in
             if bombCount < desiredBombCount then
                 ( { model | grid = grid }
@@ -259,15 +281,10 @@ update msg model =
 
         ClickFace ->
             ( { model
-                | grid = Grid.fromDimensions (getDimensions model.game)
+                | grid = Grid.fromDimensions (getDimensions model.difficulty)
                 , time = 0
                 , mode = Start
               }
-            , Cmd.none
-            )
-
-        OpenMenu menu ->
-            ( { model | menu = Just menu }
             , Cmd.none
             )
 
@@ -277,16 +294,26 @@ update msg model =
         ClearActiveCell ->
             ( { model | activeCell = Nothing }, Cmd.none )
 
-        SetDifficulty difficulty ->
-            ( { model
-                | game = difficulty
-                , grid = Grid.fromDimensions (getDimensions difficulty)
-                , time = 0
-                , mode = Start
-                , menu = Nothing
-              }
-            , Cmd.none
-            )
+        OpenMenu difficulty ->
+            let
+                fields =
+                    case difficulty of
+                        Custom properties ->
+                            properties
+
+                        _ ->
+                            { width = 5, height = 5, bombs = 5 }
+            in
+            ( { model | menu = Just (DifficultyMenu difficulty fields) }, Cmd.none )
+
+        MenuMsg msg_ ->
+            ( { model | menu = Maybe.map (updateMenu msg_) model.menu }, Cmd.none )
+
+        CloseMenu (Just difficulty) ->
+            ( startGame difficulty, Cmd.none )
+
+        CloseMenu Nothing ->
+            ( { model | menu = Nothing }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -319,7 +346,6 @@ view model =
                 , ( "padding", "5px" )
                 ]
 
-        hasActiveCell : Bool
         hasActiveCell =
             isJust model.activeCell
 
@@ -332,7 +358,8 @@ view model =
             case model.activeCell of
                 Just cell ->
                     if model.isRightClicked && cell.state == Exposed then
-                        Grid.getNeighbors cell model.grid |> List.filter (\c -> c.state == Initial)
+                        Grid.getNeighbors cell model.grid
+                            |> List.filter (\c -> c.state == Initial)
 
                     else
                         []
@@ -342,8 +369,8 @@ view model =
 
         menu =
             case model.menu of
-                Just DifficultyMenu ->
-                    modalView model
+                Just customMenu ->
+                    viewModal customMenu
 
                 Nothing ->
                     Element.none
@@ -372,12 +399,13 @@ view model =
             , style "left" "96px"
             ]
             [ viewToolbar []
-                [ toolbarBtn [ onClick (OpenMenu DifficultyMenu) ] [ text "Set Difficulty" ]
+                [ toolbarBtn [ onClick (OpenMenu model.difficulty) ]
+                    [ text "Set Difficulty" ]
                 ]
             , frame []
                 [ viewHeader model.pressingFace
                     hasActiveCell
-                    (getBombCount model.game - flaggedCount)
+                    (getBombCount model.difficulty - flaggedCount)
                     model.time
                     model.mode
                 , viewGrid model.activeCell model.mode unexposedNeighbors model.grid
@@ -628,18 +656,102 @@ raisedDiv =
         ]
 
 
-modalView : Model -> Html Msg
-modalView model =
+type Menu
+    = DifficultyMenu Difficulty GridProperties
+
+
+type MenuMsg
+    = SetDifficulty Difficulty
+
+
+updateMenu : MenuMsg -> Menu -> Menu
+updateMenu msg (DifficultyMenu _ fields) =
+    case msg of
+        SetDifficulty (Custom properties) ->
+            DifficultyMenu (Custom properties) properties
+
+        SetDifficulty d ->
+            DifficultyMenu d fields
+
+
+viewModal : Menu -> Html Msg
+viewModal (DifficultyMenu difficulty fields) =
+    let
+        menuContent =
+            Html.map MenuMsg <|
+                div []
+                    [ radiobutton "Beginner" (difficulty == Beginner) Beginner
+                    , radiobutton "Intermediate" (difficulty == Intermediate) Intermediate
+                    , radiobutton "Expert" (difficulty == Expert) Expert
+                    , radiobutton "Custom" (isCustom difficulty) (Custom fields)
+                    , viewCustomFields (isCustom difficulty) fields
+                    ]
+    in
     div maskStyle
         [ modalContent []
-            [ windowsChrome [ style "padding" "0 18px 18px" ]
+            [ windowsChrome [ style "padding" "0 18px 90px" ]
                 [ formGroup "Difficulty"
-                    [ radiobutton "Beginner" Beginner model.game
-                    , radiobutton "Intermediate" Intermediate model.game
-                    , radiobutton "Expert" Expert model.game
+                    [ menuContent
+                    , button [ onClick (CloseMenu (Just difficulty)) ] [ text "OK" ]
+                    , button [ onClick (CloseMenu Nothing) ] [ text "Cancel" ]
                     ]
                 ]
             ]
+        ]
+
+
+radiobutton : String -> Bool -> Difficulty -> Html MenuMsg
+radiobutton settingLabel isSelected difficulty =
+    label [ style "display" "flex", style "align-items" "center" ]
+        [ input
+            [ type_ "radio"
+            , name "value"
+            , onClick (SetDifficulty difficulty)
+            , checked isSelected
+            , style "margin" "4px 8px"
+            ]
+            []
+        , text settingLabel
+        ]
+
+
+viewCustomFields : Bool -> GridProperties -> Html MenuMsg
+viewCustomFields enabled ({ width, height, bombs } as fields) =
+    let
+        toInput num onInput_ =
+            input
+                [ type_ "number"
+                , value (String.fromInt num)
+                , onInput
+                    (String.toInt
+                        >> Maybe.withDefault 0
+                        >> onInput_
+                    )
+                , style "margin" "4px 8px"
+                , disabled (not enabled)
+                ]
+                []
+
+        clampBombs num =
+            if num > width * height - 1 then
+                abs (width * height - 1)
+
+            else
+                abs num
+    in
+    div []
+        [ toInput width
+            (\num ->
+                SetDifficulty (Custom { fields | width = clamp 1 20 num })
+            )
+        , toInput height
+            (\num ->
+                SetDifficulty (Custom { fields | height = clamp 1 20 num })
+            )
+        , toInput bombs
+            (\num ->
+                SetDifficulty (Custom { fields | bombs = clampBombs num })
+            )
         ]
 
 
@@ -673,21 +785,6 @@ modalContent =
         , ( "padding", "10px" )
         , ( "border-radius", "3px" )
         , ( "transform", "translate(-50%, -50%)" )
-        ]
-
-
-radiobutton : String -> Difficulty -> Difficulty -> Html Msg
-radiobutton value difficulty currentGameDifficulty =
-    label [ style "display" "flex", style "align-items" "center" ]
-        [ input
-            [ type_ "radio"
-            , name "value"
-            , onClick (SetDifficulty difficulty)
-            , checked (difficulty == currentGameDifficulty)
-            , style "margin" "4px 8px"
-            ]
-            []
-        , text value
         ]
 
 
