@@ -679,21 +679,25 @@ viewModal (DifficultyMenu difficulty fields) =
     let
         menuContent =
             Html.map MenuMsg <|
-                div []
-                    [ radiobutton "Beginner" (difficulty == Beginner) Beginner
-                    , radiobutton "Intermediate" (difficulty == Intermediate) Intermediate
-                    , radiobutton "Expert" (difficulty == Expert) Expert
-                    , radiobutton "Custom" (isCustom difficulty) (Custom fields)
+                div [ style "display" "flex" ]
+                    [ div []
+                        [ radiobutton "Beginner" (difficulty == Beginner) Beginner
+                        , radiobutton "Intermediate" (difficulty == Intermediate) Intermediate
+                        , radiobutton "Expert" (difficulty == Expert) Expert
+                        , radiobutton "Custom" (isCustom difficulty) (Custom fields)
+                        ]
                     , viewCustomFields (isCustom difficulty) fields
                     ]
     in
     div maskStyle
         [ modalContent []
-            [ windowsChrome [ style "padding" "0 18px 90px" ]
+            [ windowsChrome [ style "padding" "0 18px 18px" ]
                 [ formGroup "Difficulty"
                     [ menuContent
-                    , button [ onClick (CloseMenu (Just difficulty)) ] [ text "OK" ]
-                    , button [ onClick (CloseMenu Nothing) ] [ text "Cancel" ]
+                    , div [ style "display" "flex", style "justify-content" "flex-end" ]
+                        [ button [ onClick (CloseMenu (Just difficulty)) ] [ text "OK" ]
+                        , button [ onClick (CloseMenu Nothing) ] [ text "Cancel" ]
+                        ]
                     ]
                 ]
             ]
@@ -732,14 +736,18 @@ viewCustomFields enabled ({ width, height, bombs } as fields) =
                 ]
                 []
 
-        clampBombs num =
-            if num > width * height - 1 then
-                abs (width * height - 1)
-
-            else
-                abs num
+        clampBombs =
+            clamp 1 (width * height - 1)
     in
-    div []
+    div
+        [ style "opacity"
+            (if enabled then
+                "1"
+
+             else
+                "0.7"
+            )
+        ]
         [ toInput width
             (\num ->
                 SetDifficulty (Custom { fields | width = clamp 1 20 num })
