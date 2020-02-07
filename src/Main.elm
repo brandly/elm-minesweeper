@@ -6,7 +6,7 @@ import Browser
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))
 import Grid exposing (Cell, CellState(..), Grid)
-import Html exposing (Html, button, div, input, label, p, text)
+import Html exposing (Html, button, div, input, label, p, span, text)
 import Html.Attributes exposing (checked, disabled, name, style, type_, value)
 import Html.Events exposing (custom, onClick, onInput, onMouseDown, onMouseEnter, onMouseLeave, onMouseOut, onMouseUp)
 import Json.Decode as Json
@@ -302,7 +302,7 @@ update msg model =
                             properties
 
                         _ ->
-                            { width = 5, height = 5, bombs = 5 }
+                            { width = 9, height = 9, bombs = 10 }
             in
             ( { model | menu = Just (DifficultyMenu difficulty fields) }, Cmd.none )
 
@@ -684,19 +684,24 @@ viewModal (DifficultyMenu difficulty fields) =
                         [ radiobutton "Beginner" (difficulty == Beginner) Beginner
                         , radiobutton "Intermediate" (difficulty == Intermediate) Intermediate
                         , radiobutton "Expert" (difficulty == Expert) Expert
-                        , radiobutton "Custom" (isCustom difficulty) (Custom fields)
                         ]
-                    , viewCustomFields (isCustom difficulty) fields
+                    , div []
+                        [ radiobutton "Custom" (isCustom difficulty) (Custom fields)
+                        , viewCustomFields (isCustom difficulty) fields
+                        ]
                     ]
+
+        btn =
+            styled button [ ( "font-size", "16px" ), ( "margin", "18px 4px" ) ]
     in
     div maskStyle
         [ modalContent []
-            [ windowsChrome [ style "padding" "0 18px 18px" ]
+            [ windowsChrome [ style "padding" "0 18px" ]
                 [ formGroup "Difficulty"
                     [ menuContent
                     , div [ style "display" "flex", style "justify-content" "flex-end" ]
-                        [ button [ onClick (CloseMenu (Just difficulty)) ] [ text "OK" ]
-                        , button [ onClick (CloseMenu Nothing) ] [ text "Cancel" ]
+                        [ btn [ onClick (CloseMenu (Just difficulty)) ] [ text "OK" ]
+                        , btn [ onClick (CloseMenu Nothing) ] [ text "Cancel" ]
                         ]
                     ]
                 ]
@@ -722,19 +727,24 @@ radiobutton settingLabel isSelected difficulty =
 viewCustomFields : Bool -> GridProperties -> Html MenuMsg
 viewCustomFields enabled ({ width, height, bombs } as fields) =
     let
-        toInput num onInput_ =
-            input
-                [ type_ "number"
-                , value (String.fromInt num)
-                , onInput
-                    (String.toInt
-                        >> Maybe.withDefault 0
-                        >> onInput_
-                    )
-                , style "margin" "4px 8px"
-                , disabled (not enabled)
+        toInput title num onInput_ =
+            label [ style "display" "block", style "font-size" "13px" ]
+                [ span [ style "width" "45px", style "display" "inline-block" ] [ text title ]
+                , input
+                    [ type_ "number"
+                    , value (String.fromInt num)
+                    , onInput
+                        (String.toInt
+                            >> Maybe.withDefault 0
+                            >> onInput_
+                        )
+                    , style "margin" "2px 0"
+                    , style "font-size" "inherit"
+                    , style "width" "45px"
+                    , disabled (not enabled)
+                    ]
+                    []
                 ]
-                []
 
         clampBombs =
             clamp 10 (width * height - 1)
@@ -747,16 +757,20 @@ viewCustomFields enabled ({ width, height, bombs } as fields) =
              else
                 "0.7"
             )
+        , style "margin-left" "24px"
         ]
-        [ toInput height
+        [ toInput "Height"
+            height
             (\num ->
                 SetDifficulty (Custom { fields | height = clamp 9 24 num })
             )
-        , toInput width
+        , toInput "Width"
+            width
             (\num ->
                 SetDifficulty (Custom { fields | width = clamp 9 30 num })
             )
-        , toInput bombs
+        , toInput "Mines"
+            bombs
             (\num ->
                 SetDifficulty (Custom { fields | bombs = clampBombs num })
             )
@@ -788,7 +802,6 @@ modalContent =
         , ( "left", "50%" )
         , ( "height", "auto" )
         , ( "max-height", "80%" )
-        , ( "width", "400px" )
         , ( "max-width", "95%" )
         , ( "padding", "10px" )
         , ( "border-radius", "3px" )
