@@ -737,7 +737,7 @@ viewCustomFields enabled ({ width, height, bombs } as fields) =
                 []
 
         clampBombs =
-            clamp 1 (width * height - 1)
+            clamp 10 (width * height - 1)
     in
     div
         [ style "opacity"
@@ -748,13 +748,13 @@ viewCustomFields enabled ({ width, height, bombs } as fields) =
                 "0.7"
             )
         ]
-        [ toInput width
+        [ toInput height
             (\num ->
-                SetDifficulty (Custom { fields | width = clamp 1 20 num })
+                SetDifficulty (Custom { fields | height = clamp 9 24 num })
             )
-        , toInput height
+        , toInput width
             (\num ->
-                SetDifficulty (Custom { fields | height = clamp 1 20 num })
+                SetDifficulty (Custom { fields | width = clamp 9 30 num })
             )
         , toInput bombs
             (\num ->
