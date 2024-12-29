@@ -1,7 +1,7 @@
 module Main exposing (Model, Msg(..), main, subscriptions, update, view)
 
 import Array exposing (Array)
-import Bitmap as Bitmap exposing (Face(..))
+import Bitmap exposing (Face(..))
 import Browser
 import Element exposing (Element, px, styled)
 import GameMode exposing (GameMode(..))

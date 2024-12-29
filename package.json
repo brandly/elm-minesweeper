@@ -13,8 +13,8 @@
   "devDependencies": {
     "elm": "0.19.1-6",
     "elm-analyse": "0.16.5",
-    "elm-format": "0.8.2",
+    "elm-format": "0.8.7",
     "gh-pages": "2.1.1",
-    "uglify-js": "3.7.3"
+    "uglify-js": "3.19.3"
   }
 }
