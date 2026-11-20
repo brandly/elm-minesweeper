@@ -9,9 +9,8 @@
     "compress": "uglifyjs dist/the.js -o dist/the.js --compress --mangle",
     "reactor": "elm reactor"
   },
-  "dependencies": {},
   "devDependencies": {
-    "elm": "0.19.1-6",
+    "elm": "0.19.3-0",
     "elm-analyse": "0.16.5",
     "elm-format": "0.8.7",
     "gh-pages": "2.1.1",
